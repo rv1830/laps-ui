@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,8 +8,33 @@ import { Zap, Mail, Lock, User, ArrowRight, CheckCircle, ShieldCheck, Sparkles, 
 import Link from "next/link";
 import { motion } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
+import { authService } from "@/services/auth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function Signup() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await authService.register(formData);
+      toast.success(res.message || "Account created successfully!");
+      router.push("/login"); // Backend says next step is setup, but usually we login first or redirect to setup
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const benefits = [
     "14-day free trial", 
     "No credit card required", 
@@ -18,40 +43,24 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex bg-background text-foreground transition-colors duration-300 overflow-hidden selection:bg-primary/30">
-      
-      {/* Left - Registration Form */}
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 relative z-10 bg-background/80 backdrop-blur-sm">
-        
-        {/* Decorative Background for Light Mode */}
         <div className="absolute inset-0 z-[-1] overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 dark:bg-primary/10 rounded-full blur-[100px]" />
         </div>
-
         <div className="absolute top-6 right-6 flex items-center gap-4">
           <ThemeToggle />
         </div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mx-auto w-full max-w-sm"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mx-auto w-full max-w-sm">
           <Link href="/" className="flex items-center gap-2 mb-8 group w-fit">
-            <motion.div 
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5 group-hover:bg-primary/20 transition-all"
-            >
+            <motion.div whileHover={{ scale: 1.1, rotate: 5 }} className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5 group-hover:bg-primary/20 transition-all">
               <Zap className="w-5 h-5 text-primary" />
             </motion.div>
             <span className="text-xl font-black tracking-tighter text-foreground">LAPS</span>
           </Link>
-
           <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">Create account</h1>
           <p className="text-muted-foreground mb-8 flex items-center gap-2 text-sm">
             <Sparkles className="w-4 h-4 text-primary" /> Start your 14-day free trial today
           </p>
-
           <div className="grid grid-cols-2 gap-4 mb-6">
             <Button variant="outline" className="w-full gap-2 h-11 border-border/60 bg-card hover:bg-accent transition-all text-foreground" size="lg">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -72,7 +81,6 @@ export default function Signup() {
               Microsoft
             </Button>
           </div>
-
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/50" /></div>
             <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold">
@@ -80,101 +88,77 @@ export default function Signup() {
             </div>
           </div>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid gap-2">
-              <Label htmlFor="name" className="text-foreground text-xs font-bold uppercase tracking-wider">Full name</Label>
-              <div className="relative group">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input id="name" placeholder="John Doe" className="pl-10 h-11 bg-muted/20 focus:bg-background border-border/60 transition-all text-foreground" required />
-              </div>
-            </div>
+          <form className="space-y-4" onSubmit={handleSignup}>
             <div className="grid gap-2">
               <Label htmlFor="email" className="text-foreground text-xs font-bold uppercase tracking-wider">Work email</Label>
               <div className="relative group">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input id="email" type="email" placeholder="you@company.com" className="pl-10 h-11 bg-muted/20 focus:bg-background border-border/60 transition-all text-foreground" required />
+                <Input 
+                  id="email" type="email" placeholder="you@company.com" className="pl-10 h-11 bg-muted/20 focus:bg-background border-border/60 transition-all text-foreground" required 
+                  value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
               </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password" className="text-foreground text-xs font-bold uppercase tracking-wider">Password</Label>
               <div className="relative group">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input id="password" type="password" placeholder="8+ characters" className="pl-10 h-11 bg-muted/20 focus:bg-background border-border/60 transition-all text-foreground" required />
+                <Input 
+                  id="password" type="password" placeholder="8+ characters" className="pl-10 h-11 bg-muted/20 focus:bg-background border-border/60 transition-all text-foreground" required 
+                  value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="confirmPassword" className="text-foreground text-xs font-bold uppercase tracking-wider">Confirm Password</Label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Input 
+                  id="confirmPassword" type="password" placeholder="Repeat password" className="pl-10 h-11 bg-muted/20 focus:bg-background border-border/60 transition-all text-foreground" required 
+                  value={formData.confirmPassword} onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                />
               </div>
             </div>
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Button type="submit" className="w-full h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all mt-2">
-                Create account <ArrowRight className="w-4 h-4 ml-2" />
+              <Button type="submit" disabled={loading} className="w-full h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all mt-2">
+                {loading ? "Creating..." : "Create account"} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </motion.div>
           </form>
 
           <p className="mt-8 text-center text-sm text-muted-foreground font-medium">
-            Already have an account?{" "}
-            <Link href="/login" className="text-primary font-bold hover:underline decoration-2 underline-offset-4">
-              Sign in
-            </Link>
+            Already have an account? <Link href="/login" className="text-primary font-bold hover:underline decoration-2 underline-offset-4">Sign in</Link>
           </p>
         </motion.div>
       </div>
-
-      {/* Right - Adaptive Branding/Marketing Section */}
       <div className="hidden lg:flex flex-1 relative bg-slate-50 dark:bg-slate-950 items-center justify-center overflow-hidden transition-colors duration-500">
-        
         <div className="absolute inset-0">
-          <motion.div 
-            animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
-            transition={{ duration: 10, repeat: Infinity }}
-            className="absolute top-0 right-0 w-full h-full bg-primary/20 dark:bg-primary/10 rounded-full blur-[120px]" 
-          />
+          <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 10, repeat: Infinity }} className="absolute top-0 right-0 w-full h-full bg-primary/20 dark:bg-primary/10 rounded-full blur-[120px]" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
         </div>
-
         <div className="relative z-10 max-w-md px-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-16 h-16 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center mb-8 shadow-xl relative"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="w-16 h-16 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center mb-8 shadow-xl relative">
             <Zap className="w-8 h-8 text-primary fill-primary/10" />
-            <motion.div 
-              animate={{ rotate: -360 }}
-              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-[-6px] border border-dashed border-primary/20 rounded-[1.25rem]"
-            />
+            <motion.div animate={{ rotate: -360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} className="absolute inset-[-6px] border border-dashed border-primary/20 rounded-[1.25rem]" />
           </motion.div>
-
           <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-4 leading-tight transition-colors">
             Start selling <span className="text-primary font-serif italic font-medium">smarter</span> today
           </h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed font-medium transition-colors">
-            Join 2,000+ sales teams using LAPS to automate their pipeline.
-          </p>
-          
+          <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed font-medium transition-colors">Join 2,000+ sales teams using LAPS to automate their pipeline.</p>
           <div className="space-y-4">
             {benefits.map((benefit, index) => (
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + index * 0.1 }}
-                key={benefit} 
-                className="flex items-center gap-3 p-4 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl backdrop-blur-sm shadow-sm transition-colors group hover:border-primary/30"
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all">
-                  <CheckCircle className="w-5 h-5 text-primary" />
-                </div>
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 + index * 0.1 }} key={benefit} className="flex items-center gap-3 p-4 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl backdrop-blur-sm shadow-sm transition-colors group hover:border-primary/30">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all"><CheckCircle className="w-5 h-5 text-primary" /></div>
                 <span className="font-semibold text-slate-700 dark:text-slate-200 transition-colors">{benefit}</span>
               </motion.div>
             ))}
           </div>
-
           <div className="mt-12 pt-8 border-t border-slate-200 dark:border-white/10 flex items-center gap-8 opacity-40 grayscale">
-             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-tighter text-slate-900 dark:text-white"><Globe className="w-4 h-4" /> Global</div>
-             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-tighter text-slate-900 dark:text-white"><ShieldCheck className="w-4 h-4" /> Trusted</div>
-             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-tighter text-slate-900 dark:text-white"><Zap className="w-4 h-4" /> Instant</div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-tighter text-slate-900 dark:text-white"><Globe className="w-4 h-4" /> Global</div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-tighter text-slate-900 dark:text-white"><ShieldCheck className="w-4 h-4" /> Trusted</div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-tighter text-slate-900 dark:text-white"><Zap className="w-4 h-4" /> Instant</div>
           </div>
         </div>
-
         <div className="absolute bottom-10 right-10 opacity-10 dark:opacity-20 pointer-events-none">
           <div className="text-[100px] font-black text-slate-900 dark:text-white select-none tracking-tighter italic">LAPS</div>
         </div>
