@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -50,125 +49,128 @@ interface NavItem {
   children?: { title: string; href: string }[]
 }
 
-const navItems: NavItem[] = [
+// Helper to generate dynamic navigation based on workspaceId
+const getNavItems = (workspaceId: string): NavItem[] => [
   {
     title: "Dashboard",
-    href: "/dashboard",
+    href: `/dashboard/${workspaceId}`,
     icon: LayoutDashboard,
   },
   {
     title: "Leads",
-    href: "/leads",
+    href: `/dashboard/${workspaceId}/leads`,
     icon: Users,
     badge: 12,
     children: [
-      { title: "All Leads", href: "/leads" },
-      { title: "Import", href: "/leads/import" },
-      { title: "Capture Sources", href: "/leads/capture" },
+      { title: "All Leads", href: `/dashboard/${workspaceId}/leads` },
+      { title: "Import", href: `/dashboard/${workspaceId}/leads/import` },
+      { title: "Capture Sources", href: `/dashboard/${workspaceId}/leads/capture` },
     ],
   },
   {
     title: "Pipeline",
-    href: "/pipeline",
+    href: `/dashboard/${workspaceId}/pipeline`,
     icon: Kanban,
     children: [
-      { title: "Board View", href: "/pipeline" },
-      { title: "Timeline", href: "/pipeline/timeline" },
+      { title: "Board View", href: `/dashboard/${workspaceId}/pipeline` },
+      { title: "Timeline", href: `/dashboard/${workspaceId}/pipeline/timeline` },
     ],
   },
   {
     title: "Tasks",
-    href: "/tasks",
+    href: `/dashboard/${workspaceId}/tasks`,
     icon: CheckSquare,
     badge: 5,
   },
   {
     title: "Automation",
-    href: "/automation",
+    href: `/dashboard/${workspaceId}/automation`,
     icon: Zap,
     isAI: true,
     children: [
-      { title: "Workflows", href: "/automation" },
-      { title: "Email Sequences", href: "/automation/sequences" },
-      { title: "Run Logs", href: "/automation/logs" },
+      { title: "Workflows", href: `/dashboard/${workspaceId}/automation` },
+      { title: "Email Sequences", href: `/dashboard/${workspaceId}/automation/sequences` },
+      { title: "Run Logs", href: `/dashboard/${workspaceId}/automation/logs` },
     ],
   },
   {
     title: "Appointments",
-    href: "/appointments",
+    href: `/dashboard/${workspaceId}/appointments`,
     icon: Calendar,
     children: [
-      { title: "Calendar", href: "/appointments" },
-      { title: "Booking Settings", href: "/appointments/settings" },
+      { title: "Calendar", href: `/dashboard/${workspaceId}/appointments` },
+      { title: "Booking Settings", href: `/dashboard/${workspaceId}/appointments/settings` },
     ],
   },
   {
     title: "Proposals",
-    href: "/proposals",
+    href: `/dashboard/${workspaceId}/proposals`,
     icon: FileText,
     children: [
-      { title: "All Proposals", href: "/proposals" },
-      { title: "Templates", href: "/proposals/templates" },
+      { title: "All Proposals", href: `/dashboard/${workspaceId}/proposals` },
+      { title: "Templates", href: `/dashboard/${workspaceId}/proposals/templates` },
     ],
   },
   {
     title: "Invoices",
-    href: "/invoices",
+    href: `/dashboard/${workspaceId}/invoices`,
     icon: Receipt,
     children: [
-      { title: "All Invoices", href: "/invoices" },
-      { title: "Templates", href: "/invoices/templates" },
+      { title: "All Invoices", href: `/dashboard/${workspaceId}/invoices` },
+      { title: "Templates", href: `/dashboard/${workspaceId}/invoices/templates` },
     ],
   },
   {
     title: "Offers",
-    href: "/offers",
+    href: `/dashboard/${workspaceId}/offers`,
     icon: Package,
   },
   {
     title: "Analytics",
-    href: "/analytics",
+    href: `/dashboard/${workspaceId}/analytics`,
     icon: BarChart3,
   },
 ]
 
-const settingsItems: NavItem[] = [
+// Settings items with dynamic workspaceId
+const getSettingsItems = (workspaceId: string): NavItem[] => [
   {
     title: "Settings",
-    href: "/settings",
+    href: `/dashboard/${workspaceId}/settings`,
     icon: Settings,
     children: [
-      { title: "Workspace", href: "/settings/workspace" },
-      { title: "Team & RBAC", href: "/settings/team" },
-      { title: "Email", href: "/settings/email" },
-      { title: "Calendar", href: "/settings/calendar" },
-      { title: "AI Configuration", href: "/settings/ai" },
-      { title: "Integrations", href: "/settings/integrations" },
-      { title: "Compliance", href: "/settings/compliance" },
+      { title: "Workspace", href: `/dashboard/${workspaceId}/settings/workspace` },
+      { title: "Team & RBAC", href: `/dashboard/${workspaceId}/settings/team` },
+      { title: "Email", href: `/dashboard/${workspaceId}/settings/email` },
     ],
-  },
-]
-
-const mockWorkspaces: Workspace[] = [
-  {
-    id: "1",
-    name: "Acme Agency",
-    industry: "Marketing",
-    role: "owner",
-    integrationsConnected: { email: true, calendar: true, payment: false },
-  },
-  {
-    id: "2",
-    name: "Personal Sales",
-    role: "owner",
-    integrationsConnected: { email: true, calendar: false, payment: false },
   },
 ]
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const params = useParams()
+  const router = useRouter()
+  
+  // Extract workspaceId from URL
+  const workspaceId = params.workspaceId as string
+  
   const [openSections, setOpenSections] = useState<string[]>(["Leads", "Pipeline", "Automation"])
-  const [currentWorkspace, setCurrentWorkspace] = useState(mockWorkspaces[0])
+  
+  // Replace this with your actual workspaces from context or API
+  const mockWorkspaces: Workspace[] = [
+    {
+      id: "cmk4d7wt90001ca5wz79mvo30",
+      name: "RAVI RAJ",
+      role: "owner",
+    } as any,
+    {
+      id: "2",
+      name: "Acme Agency",
+      role: "admin",
+    } as any,
+  ]
+
+  const currentWorkspace = mockWorkspaces.find(w => w.id === workspaceId) || mockWorkspaces[0]
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]))
@@ -176,16 +178,18 @@ export function AppSidebar() {
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/")
 
+  const handleWorkspaceSwitch = (id: string) => {
+    // Navigates to the same page but in a different workspace
+    const newPath = pathname.replace(workspaceId, id)
+    router.push(newPath)
+  }
+
   return (
     <aside className="flex h-screen w-[260px] flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3 mb-4">
           <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-primary to-accent shadow-lg ai-glow-subtle">
             <Zap className="h-5 w-5 text-primary-foreground" />
-            <div className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
-            </div>
           </div>
           <div>
             <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
@@ -205,41 +209,45 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-between h-auto py-2.5 px-3 bg-sidebar-accent/50 hover:bg-sidebar-accent border border-sidebar-border/50 text-sidebar-accent-foreground rounded-xl transition-all hover:border-primary/30"
+              className="w-full justify-between h-auto py-2.5 px-3 bg-sidebar-accent/50 hover:bg-sidebar-accent border border-sidebar-border/50 text-sidebar-accent-foreground rounded-xl transition-all"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 text-primary">
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 text-primary">
                   <Building2 className="h-4 w-4" />
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium">{currentWorkspace.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{currentWorkspace.role}</p>
+                <div className="text-left overflow-hidden">
+                  <p className="text-sm font-medium truncate">{currentWorkspace.name}</p>
+                  <p className="text-[10px] text-muted-foreground capitalize">{currentWorkspace.role}</p>
                 </div>
               </div>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
+          <DropdownMenuContent align="start" className="w-64">
             <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {mockWorkspaces.map((workspace) => (
               <DropdownMenuItem
                 key={workspace.id}
-                onClick={() => setCurrentWorkspace(workspace)}
+                onClick={() => handleWorkspaceSwitch(workspace.id)}
                 className="cursor-pointer"
               >
                 <Building2 className="mr-2 h-4 w-4" />
-                <div>
-                  <p className="font-medium">{workspace.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{workspace.role}</p>
+                <div className="flex-1 overflow-hidden">
+                  <p className={cn("font-medium truncate", workspace.id === workspaceId && "text-primary")}>
+                    {workspace.name}
+                  </p>
                 </div>
+                {workspace.id === workspaceId && <div className="h-2 w-2 rounded-full bg-primary ml-2" />}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create Workspace
-            </DropdownMenuItem>
+            <Link href="/create-workspace">
+              <DropdownMenuItem className="cursor-pointer">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Workspace
+              </DropdownMenuItem>
+            </Link>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -247,17 +255,16 @@ export function AppSidebar() {
       <div className="px-4 py-3">
         <button className="flex w-full items-center gap-3 rounded-xl border border-sidebar-border/50 bg-sidebar-accent/30 px-3 py-2.5 text-sm text-muted-foreground hover:bg-sidebar-accent hover:border-primary/30 transition-all group">
           <Search className="h-4 w-4 group-hover:text-primary transition-colors" />
-          <span className="flex-1 text-left">Search anything...</span>
+          <span className="flex-1 text-left">Search...</span>
           <kbd className="flex items-center gap-0.5 rounded-md bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-medium border border-sidebar-border/50">
             <Command className="h-3 w-3" />K
           </kbd>
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
         <div className="space-y-1">
-          {navItems.map((item) => (
+          {getNavItems(workspaceId).map((item) => (
             <NavItemComponent
               key={item.href}
               item={item}
@@ -273,7 +280,7 @@ export function AppSidebar() {
             Configuration
           </p>
           <div className="space-y-1">
-            {settingsItems.map((item) => (
+            {getSettingsItems(workspaceId).map((item) => (
               <NavItemComponent
                 key={item.href}
                 item={item}
@@ -291,32 +298,22 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 h-auto py-2.5 px-2 hover:bg-sidebar-accent rounded-xl transition-all"
+              className="w-full justify-start gap-3 h-auto py-2.5 px-2 hover:bg-sidebar-accent rounded-xl"
             >
               <div className="relative">
-                <Avatar className="h-9 w-9 border-2 border-primary/30 ring-2 ring-primary/10">
-                  <AvatarImage src="/diverse-avatars.png" />
-                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-primary text-xs font-semibold">
-                    JD
-                  </AvatarFallback>
+                <Avatar className="h-9 w-9 border-2 border-primary/30">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">RR</AvatarFallback>
                 </Avatar>
-                <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-success border-2 border-sidebar flex items-center justify-center">
-                  <div className="h-1.5 w-1.5 rounded-full bg-success-foreground" />
-                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-sidebar" />
               </div>
               <div className="text-left flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">John Doe</p>
-                <p className="text-xs text-muted-foreground truncate">john@example.com</p>
+                <p className="text-sm font-medium truncate">Ravi Raj</p>
+                <p className="text-xs text-muted-foreground truncate text-[10px]">Admin</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
-            <DropdownMenuItem>Notifications</DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">Log out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -352,28 +349,10 @@ function NavItemComponent({
             )}
           >
             <span className="flex items-center gap-3">
-              <div
-                className={cn(
-                  "flex h-6 w-6 items-center justify-center rounded-lg transition-colors",
-                  active ? "bg-primary/20 text-primary" : "text-muted-foreground",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-              </div>
+              <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
               <span className="text-sm font-medium">{item.title}</span>
-              {item.isAI && (
-                <div className="flex h-4 items-center gap-1 rounded-full bg-accent/20 px-1.5">
-                  <Sparkles className="h-2.5 w-2.5 text-accent" />
-                  <span className="text-[9px] font-bold text-accent">AI</span>
-                </div>
-              )}
             </span>
             <span className="flex items-center gap-2">
-              {item.badge && (
-                <Badge className="h-5 min-w-5 px-1.5 text-[10px] font-bold bg-primary/20 text-primary border-0 rounded-full">
-                  {item.badge}
-                </Badge>
-              )}
               {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </span>
           </Button>
@@ -384,8 +363,8 @@ function NavItemComponent({
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start h-8 px-3 text-sm font-medium hover:bg-sidebar-accent rounded-lg transition-all",
-                  isActive(child.href) && "bg-sidebar-accent text-primary",
+                  "w-full justify-start h-8 px-3 text-sm font-medium hover:bg-sidebar-accent rounded-lg",
+                  isActive(child.href) && "bg-sidebar-accent/50 text-primary",
                 )}
               >
                 {child.title}
@@ -402,23 +381,14 @@ function NavItemComponent({
       <Button
         variant="ghost"
         className={cn(
-          "w-full justify-between h-10 px-3 hover:bg-sidebar-accent rounded-xl transition-all",
+          "w-full justify-start gap-3 h-10 px-3 hover:bg-sidebar-accent rounded-xl transition-all",
           active && "bg-sidebar-accent text-primary border border-primary/20",
         )}
       >
-        <span className="flex items-center gap-3">
-          <div
-            className={cn(
-              "flex h-6 w-6 items-center justify-center rounded-lg transition-colors",
-              active ? "bg-primary/20 text-primary" : "text-muted-foreground",
-            )}
-          >
-            <Icon className="h-4 w-4" />
-          </div>
-          <span className="text-sm font-medium">{item.title}</span>
-        </span>
+        <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
+        <span className="text-sm font-medium">{item.title}</span>
         {item.badge && (
-          <Badge className="h-5 min-w-5 px-1.5 text-[10px] font-bold bg-primary/20 text-primary border-0 rounded-full">
+          <Badge className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold bg-primary/20 text-primary border-0 rounded-full">
             {item.badge}
           </Badge>
         )}
