@@ -25,6 +25,8 @@ import {
   Sparkles,
   Command,
   Bot,
+  LogOut,
+  User,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -39,6 +41,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Workspace } from "@/lib/types"
+import { authService } from "@/services/auth"
+import { toast } from "sonner"
 
 interface NavItem {
   title: string
@@ -49,7 +53,6 @@ interface NavItem {
   children?: { title: string; href: string }[]
 }
 
-// Helper to generate dynamic navigation based on workspaceId
 const getNavItems = (workspaceId: string): NavItem[] => [
   {
     title: "Dashboard",
@@ -132,7 +135,6 @@ const getNavItems = (workspaceId: string): NavItem[] => [
   },
 ]
 
-// Settings items with dynamic workspaceId
 const getSettingsItems = (workspaceId: string): NavItem[] => [
   {
     title: "Settings",
@@ -150,27 +152,30 @@ export function AppSidebar() {
   const pathname = usePathname()
   const params = useParams()
   const router = useRouter()
-  
-  // Extract workspaceId from URL
   const workspaceId = params.workspaceId as string
   
   const [openSections, setOpenSections] = useState<string[]>(["Leads", "Pipeline", "Automation"])
-  
-  // Replace this with your actual workspaces from context or API
-  const mockWorkspaces: Workspace[] = [
-    {
-      id: "cmk4d7wt90001ca5wz79mvo30",
-      name: "RAVI RAJ",
-      role: "owner",
-    } as any,
-    {
-      id: "2",
-      name: "Acme Agency",
-      role: "admin",
-    } as any,
-  ]
+  const [userData, setUserData] = useState<any>(null)
+  const [workspaces, setWorkspaces] = useState<any[]>([])
 
-  const currentWorkspace = mockWorkspaces.find(w => w.id === workspaceId) || mockWorkspaces[0]
+  // Fetch real data on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [statusRes, workspaceRes] = await Promise.all([
+          authService.checkStatus(),
+          authService.getWorkspaces()
+        ]);
+        setUserData(statusRes.user);
+        setWorkspaces(workspaceRes.workspaces);
+      } catch (error) {
+        console.error("Failed to load sidebar data", error);
+      }
+    };
+    loadData();
+  }, []);
+
+  const currentWorkspace = workspaces.find(w => w.id === workspaceId) || workspaces[0]
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]))
@@ -179,10 +184,19 @@ export function AppSidebar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/")
 
   const handleWorkspaceSwitch = (id: string) => {
-    // Navigates to the same page but in a different workspace
     const newPath = pathname.replace(workspaceId, id)
     router.push(newPath)
   }
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      toast.success("Logged out successfully");
+      router.push("/login");
+    } catch (error) {
+      toast.error("Logout failed");
+    }
+  };
 
   return (
     <aside className="flex h-screen w-[260px] flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
@@ -216,8 +230,8 @@ export function AppSidebar() {
                   <Building2 className="h-4 w-4" />
                 </div>
                 <div className="text-left overflow-hidden">
-                  <p className="text-sm font-medium truncate">{currentWorkspace.name}</p>
-                  <p className="text-[10px] text-muted-foreground capitalize">{currentWorkspace.role}</p>
+                  <p className="text-sm font-medium truncate">{currentWorkspace?.name || "Loading..."}</p>
+                  <p className="text-[10px] text-muted-foreground capitalize">{currentWorkspace?.role || "Owner"}</p>
                 </div>
               </div>
               <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -226,7 +240,7 @@ export function AppSidebar() {
           <DropdownMenuContent align="start" className="w-64">
             <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {mockWorkspaces.map((workspace) => (
+            {workspaces.map((workspace) => (
               <DropdownMenuItem
                 key={workspace.id}
                 onClick={() => handleWorkspaceSwitch(workspace.id)}
@@ -293,6 +307,7 @@ export function AppSidebar() {
         </div>
       </nav>
 
+      {/* Profile & Logout Section */}
       <div className="p-3 border-t border-sidebar-border/50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -302,19 +317,31 @@ export function AppSidebar() {
             >
               <div className="relative">
                 <Avatar className="h-9 w-9 border-2 border-primary/30">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">RR</AvatarFallback>
+                  <AvatarImage src={userData?.avatar} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold uppercase">
+                    {userData?.firstName?.charAt(0)}{userData?.lastName?.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-sidebar" />
               </div>
               <div className="text-left flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Ravi Raj</p>
-                <p className="text-xs text-muted-foreground truncate text-[10px]">Admin</p>
+                <p className="text-sm font-medium truncate">{userData?.firstName} {userData?.lastName}</p>
+                <p className="text-xs text-muted-foreground truncate text-[10px]">{userData?.email}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">Log out</DropdownMenuItem>
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <Link href={`/dashboard/${workspaceId}/settings/profile`}>
+              <DropdownMenuItem className="cursor-pointer">
+                <User className="mr-2 h-4 w-4" /> Profile Details
+              </DropdownMenuItem>
+            </Link>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
+              <LogOut className="mr-2 h-4 w-4" /> Log out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

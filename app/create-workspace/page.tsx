@@ -42,10 +42,15 @@ export default function CreateWorkspace() {
         e.preventDefault();
         setLoading(true);
         try {
-            // Direct API call since we need 'workspace' prefix based on your routes
             const res = await api.post('/workspaces', formData);
+            
+            // Get ID from res.data.workspace.id based on your backend controller
+            const workspaceId = res.data.workspace.id;
+            
             toast.success("Workspace & Pipeline created successfully!");
-            router.push("/dashboard");
+            
+            // Redirect to the dynamic workspace dashboard
+            router.push(`/dashboard/${workspaceId}`);
         } catch (err: any) {
             toast.error(err.response?.data?.error || "Failed to create workspace");
         } finally {

@@ -20,4 +20,13 @@ export const authService = {
     const response = await api.post('/setup-profile', data);
     return response.data;
   }
+  ,
+  logout: async () => {
+    const response = await api.post('/logout');
+    return response.data;
+  },
+  getWorkspaces: async () => {
+    const response = await api.get('/workspaces');
+    return response.data;
+  }
 };
