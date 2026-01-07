@@ -3,111 +3,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Complete redesign - Premium AI-powered CRM with Emerald/Cyan theme */
-:root {
-  /* Light mode - Clean with emerald accents */
-  --background: oklch(0.985 0.002 180);
-  --foreground: oklch(0.15 0.015 180);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.015 180);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.015 180);
-  --primary: oklch(0.65 0.2 160);
-  --primary-foreground: oklch(0.98 0.002 180);
-  --secondary: oklch(0.96 0.005 180);
-  --secondary-foreground: oklch(0.25 0.015 180);
-  --muted: oklch(0.96 0.005 180);
-  --muted-foreground: oklch(0.5 0.01 180);
-  --accent: oklch(0.7 0.18 195);
-  --accent-foreground: oklch(0.98 0.002 180);
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.98 0.002 180);
-  --border: oklch(0.92 0.005 180);
-  --input: oklch(0.92 0.005 180);
-  --ring: oklch(0.65 0.2 160);
-  --chart-1: oklch(0.65 0.2 160);
-  --chart-2: oklch(0.7 0.18 195);
-  --chart-3: oklch(0.72 0.17 55);
-  --chart-4: oklch(0.65 0.2 280);
-  --chart-5: oklch(0.6 0.15 220);
-  --radius: 0.75rem;
-
-  /* Sidebar */
-  --sidebar: oklch(0.12 0.02 180);
-  --sidebar-foreground: oklch(0.92 0.008 180);
-  --sidebar-primary: oklch(0.65 0.2 160);
-  --sidebar-primary-foreground: oklch(0.98 0.002 180);
-  --sidebar-accent: oklch(0.2 0.025 180);
-  --sidebar-accent-foreground: oklch(0.92 0.008 180);
-  --sidebar-border: oklch(0.22 0.02 180);
-  --sidebar-ring: oklch(0.65 0.2 160);
-
-  /* Status colors */
-  --success: oklch(0.65 0.2 145);
-  --success-foreground: oklch(0.98 0.002 180);
-  --warning: oklch(0.75 0.15 70);
-  --warning-foreground: oklch(0.2 0.015 70);
-  --info: oklch(0.65 0.15 230);
-  --info-foreground: oklch(0.98 0.002 180);
-
-  /* AI accent - Cyan glow */
-  --ai: oklch(0.75 0.18 195);
-  --ai-foreground: oklch(0.12 0.02 180);
-}
-
-.dark {
-  /* Dark mode - Deep space black with emerald/cyan AI glow */
-  --background: oklch(0.1 0.015 180);
-  --foreground: oklch(0.94 0.008 180);
-  --card: oklch(0.14 0.018 180);
-  --card-foreground: oklch(0.94 0.008 180);
-  --popover: oklch(0.14 0.018 180);
-  --popover-foreground: oklch(0.94 0.008 180);
-  --primary: oklch(0.7 0.19 160);
-  --primary-foreground: oklch(0.1 0.015 180);
-  --secondary: oklch(0.18 0.02 180);
-  --secondary-foreground: oklch(0.94 0.008 180);
-  --muted: oklch(0.2 0.02 180);
-  --muted-foreground: oklch(0.6 0.012 180);
-  --accent: oklch(0.75 0.17 195);
-  --accent-foreground: oklch(0.1 0.015 180);
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(0.94 0.008 180);
-  --border: oklch(0.25 0.02 180);
-  --input: oklch(0.25 0.02 180);
-  --ring: oklch(0.7 0.19 160);
-  --chart-1: oklch(0.7 0.19 160);
-  --chart-2: oklch(0.75 0.17 195);
-  --chart-3: oklch(0.75 0.16 55);
-  --chart-4: oklch(0.7 0.18 280);
-  --chart-5: oklch(0.65 0.14 220);
-
-  /* Sidebar - Deep black */
-  --sidebar: oklch(0.08 0.012 180);
-  --sidebar-foreground: oklch(0.92 0.008 180);
-  --sidebar-primary: oklch(0.7 0.19 160);
-  --sidebar-primary-foreground: oklch(0.1 0.015 180);
-  --sidebar-accent: oklch(0.15 0.018 180);
-  --sidebar-accent-foreground: oklch(0.92 0.008 180);
-  --sidebar-border: oklch(0.2 0.018 180);
-  --sidebar-ring: oklch(0.7 0.19 160);
-
-  /* Status colors */
-  --success: oklch(0.7 0.19 145);
-  --success-foreground: oklch(0.1 0.015 180);
-  --warning: oklch(0.78 0.14 70);
-  --warning-foreground: oklch(0.1 0.015 180);
-  --info: oklch(0.7 0.14 230);
-  --info-foreground: oklch(0.1 0.015 180);
-
-  /* AI accent - Bright cyan */
-  --ai: oklch(0.8 0.17 195);
-  --ai-foreground: oklch(0.1 0.015 180);
-}
-
+/* -------------------------------------------------------------------------- */
+/* 1. THEME DEFINITIONS (Tailwind v4 / OKLCH Mapping)                         */
+/* -------------------------------------------------------------------------- */
 @theme inline {
-  --font-sans: "Inter", "Geist", "Geist Fallback";
-  --font-mono: "JetBrains Mono", "Geist Mono", "Geist Mono Fallback";
+  --font-sans: "Inter", "Geist", "Geist Fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Geist Mono", "Geist Mono Fallback", monospace;
+
+  /* Basic Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -127,15 +30,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Sidebar */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -144,6 +40,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Status & AI */
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -152,158 +50,207 @@
   --color-info-foreground: var(--info-foreground);
   --color-ai: var(--ai);
   --color-ai-foreground: var(--ai-foreground);
+
+  /* Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* -------------------------------------------------------------------------- */
+/* 2. VARIABLES (Dono files ka mixture)                                       */
+/* -------------------------------------------------------------------------- */
+:root {
+  /* Welcome Page base (HSL fallback style merged into OKLCH for v4) */
+  --background: oklch(0.985 0.002 180);
+  --foreground: oklch(0.15 0.015 180);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.015 180);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.015 180);
+  --primary: oklch(0.65 0.2 160);
+  --primary-foreground: oklch(0.98 0.002 180);
+  --secondary: oklch(0.96 0.005 180);
+  --secondary-foreground: oklch(0.25 0.015 180);
+  --muted: oklch(0.96 0.005 180);
+  --muted-foreground: oklch(0.5 0.01 180);
+  --accent: oklch(0.7 0.18 195);
+  --accent-foreground: oklch(0.98 0.002 180);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0.002 180);
+  --border: oklch(0.92 0.005 180);
+  --input: oklch(0.92 0.005 180);
+  --ring: oklch(0.65 0.2 160);
+  --radius: 0.75rem;
+
+  /* Sidebar Variables */
+  --sidebar: oklch(0.12 0.02 180);
+  --sidebar-foreground: oklch(0.92 0.008 180);
+  --sidebar-primary: oklch(0.65 0.2 160);
+  --sidebar-primary-foreground: oklch(0.98 0.002 180);
+  --sidebar-accent: oklch(0.2 0.025 180);
+  --sidebar-accent-foreground: oklch(0.92 0.008 180);
+  --sidebar-border: oklch(0.22 0.02 180);
+  --sidebar-ring: oklch(0.65 0.2 160);
+
+  /* Status & AI */
+  --success: oklch(0.65 0.2 145);
+  --success-foreground: oklch(0.98 0.002 180);
+  --warning: oklch(0.75 0.15 70);
+  --warning-foreground: oklch(0.2 0.015 70);
+  --info: oklch(0.65 0.15 230);
+  --info-foreground: oklch(0.98 0.002 180);
+  --ai: oklch(0.75 0.18 195);
+  --ai-foreground: oklch(0.12 0.02 180);
+
+  /* Welcome Page Specific Gradients & Glows */
+  --glow-primary: 0 0 40px oklch(0.65 0.2 160 / 0.2);
+  --glow-primary-intense: 0 0 80px oklch(0.65 0.2 160 / 0.3);
+  --gradient-primary: linear-gradient(135deg, oklch(0.65 0.2 160) 0%, oklch(0.75 0.18 195) 100%);
+  --gradient-hero: radial-gradient(ellipse at 50% -20%, oklch(0.65 0.2 160 / 0.08) 0%, transparent 60%);
+  --gradient-card: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.985 0.002 180) 100%);
+
+  /* Background Grid Pattern Settings */
+  --grid-color: oklch(0.65 0.2 160 / 0.05);
+  --grid-size: 80px;
+}
+
+.dark {
+  --background: oklch(0.1 0.015 180);
+  --foreground: oklch(0.94 0.008 180);
+  --card: oklch(0.14 0.018 180);
+  --card-foreground: oklch(0.94 0.008 180);
+  --popover: oklch(0.14 0.018 180);
+  --popover-foreground: oklch(0.94 0.008 180);
+  --primary: oklch(0.7 0.19 160);
+  --primary-foreground: oklch(0.1 0.015 180);
+  --secondary: oklch(0.18 0.02 180);
+  --secondary-foreground: oklch(0.94 0.008 180);
+  --muted: oklch(0.2 0.02 180);
+  --muted-foreground: oklch(0.6 0.012 180);
+  --accent: oklch(0.75 0.17 195);
+  --accent-foreground: oklch(0.1 0.015 180);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.94 0.008 180);
+  --border: oklch(0.25 0.02 180);
+  --input: oklch(0.25 0.02 180);
+  --ring: oklch(0.7 0.19 160);
+
+  --sidebar: oklch(0.08 0.012 180);
+  --sidebar-foreground: oklch(0.92 0.008 180);
+  --sidebar-primary: oklch(0.7 0.19 160);
+  --sidebar-primary-foreground: oklch(0.1 0.015 180);
+
+  --glow-primary: 0 0 40px oklch(0.7 0.19 160 / 0.3);
+  --glow-primary-intense: 0 0 80px oklch(0.7 0.19 160 / 0.5);
+  
+  --grid-color: oklch(0.7 0.19 160 / 0.1);
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3. BASE STYLES                                                             */
+/* -------------------------------------------------------------------------- */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    
+    /* Background Grid Pattern (Check Layout) */
+    background-image: 
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
   }
 }
 
-/* Premium scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* -------------------------------------------------------------------------- */
+/* 4. UTILITIES & CUSTOM EFFECTS                                              */
+/* -------------------------------------------------------------------------- */
+@layer utilities {
+  /* Glows */
+  .glow { box-shadow: var(--glow-primary); }
+  .glow-intense { box-shadow: var(--glow-primary-intense); }
+  .ai-glow { box-shadow: 0 0 20px oklch(0.75 0.17 195 / 0.25), 0 0 40px oklch(0.75 0.17 195 / 0.1); }
+  
+  /* Gradients */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+  .bg-gradient-primary { background: var(--gradient-primary); }
+  .bg-gradient-hero { background: var(--gradient-hero); }
+  .bg-gradient-card { background: var(--gradient-card); }
+  
+  .gradient-mesh {
+    background: radial-gradient(ellipse 80% 50% at 20% 40%, oklch(0.7 0.19 160 / 0.08) 0px, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 20%, oklch(0.75 0.17 195 / 0.06) 0px, transparent 50%),
+                radial-gradient(ellipse 50% 50% at 60% 80%, oklch(0.7 0.19 145 / 0.04) 0px, transparent 50%);
+  }
+
+  /* Glass Effects */
+  .glass {
+    @apply backdrop-blur-xl border border-border/50;
+    background: oklch(var(--background) / 0.6);
+  }
+  .glass-strong {
+    @apply backdrop-blur-2xl border-b border-border;
+    background: oklch(var(--background) / 0.95);
+  }
+
+  /* Interactivity */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+    &:hover { box-shadow: 0 12px 40px oklch(0 0 0 / 0.1); }
+  }
+  
+  .section-padding { @apply py-20 lg:py-28; }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+/* -------------------------------------------------------------------------- */
+/* 5. ANIMATIONS                                                              */
+/* -------------------------------------------------------------------------- */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 }
 
-::-webkit-scrollbar-thumb {
-  background: oklch(0.35 0.015 180 / 0.5);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.45 0.015 180 / 0.7);
-}
-
-/* AI Glow effects */
-.ai-glow {
-  box-shadow: 0 0 20px oklch(0.75 0.17 195 / 0.25), 0 0 40px oklch(0.75 0.17 195 / 0.1), inset 0 1px 0
-    oklch(1 0 0 / 0.05);
-}
-
-.ai-glow-subtle {
-  box-shadow: 0 0 12px oklch(0.75 0.17 195 / 0.15), 0 0 24px oklch(0.75 0.17 195 / 0.05);
-}
-
-.primary-glow {
-  box-shadow: 0 0 20px oklch(0.7 0.19 160 / 0.25), 0 0 40px oklch(0.7 0.19 160 / 0.1);
-}
-
-.success-glow {
-  box-shadow: 0 0 15px oklch(0.7 0.19 145 / 0.25), 0 0 30px oklch(0.7 0.19 145 / 0.1);
-}
-
-/* Gradient backgrounds */
-.gradient-mesh {
-  background: radial-gradient(ellipse 80% 50% at 20% 40%, oklch(0.7 0.19 160 / 0.08) 0px, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 20%, oklch(0.75 0.17 195 / 0.06) 0px, transparent 50%),
-    radial-gradient(ellipse 50% 50% at 60% 80%, oklch(0.7 0.19 145 / 0.04) 0px, transparent 50%);
-}
-
-.glass {
-  background: oklch(0.14 0.018 180 / 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid oklch(1 0 0 / 0.05);
-}
-
-/* Animated gradient border */
-.gradient-border {
-  position: relative;
-  background: linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, oklch(0.7 0.19 160), oklch(0.75 0.17 195), oklch(0.7 0.19 160)) border-box;
-  border: 1px solid transparent;
-}
-
-/* Pulse animation for AI elements */
 @keyframes ai-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow: 0 0 10px oklch(0.75 0.17 195 / 0.4);
-  }
-  50% {
-    opacity: 0.8;
-    box-shadow: 0 0 20px oklch(0.75 0.17 195 / 0.6);
-  }
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px oklch(0.75 0.17 195 / 0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 20px oklch(0.75 0.17 195 / 0.6); }
 }
 
-.ai-pulse {
-  animation: ai-pulse 2s ease-in-out infinite;
-}
-
-/* Shimmer effect for loading */
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
+.animate-float { animation: float 6s ease-in-out infinite; }
+.ai-pulse { animation: ai-pulse 2s ease-in-out infinite; }
 .shimmer {
   background: linear-gradient(90deg, oklch(0.2 0.02 180) 0%, oklch(0.25 0.02 180) 50%, oklch(0.2 0.02 180) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-/* Card hover effect */
-.card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* -------------------------------------------------------------------------- */
+/* 6. SCROLLBAR                                                               */
+/* -------------------------------------------------------------------------- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: oklch(0.35 0.015 180 / 0.5);
+  border-radius: 3px;
 }
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px oklch(0 0 0 / 0.3), 0 0 0 1px oklch(1 0 0 / 0.05);
-}
-
-
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.45 0.015 180 / 0.7);
 }
