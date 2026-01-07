@@ -84,14 +84,14 @@
   --ring: oklch(0.65 0.2 160);
   --radius: 0.75rem;
 
-  /* Sidebar Variables */
-  --sidebar: oklch(0.12 0.02 180);
-  --sidebar-foreground: oklch(0.92 0.008 180);
+  /* --- SIDEBAR LIGHT MODE (Fixed) --- */
+  --sidebar: oklch(0.985 0.002 180); /* Sidebar ab light dikhega light mode mein */
+  --sidebar-foreground: oklch(0.15 0.015 180);
   --sidebar-primary: oklch(0.65 0.2 160);
   --sidebar-primary-foreground: oklch(0.98 0.002 180);
-  --sidebar-accent: oklch(0.2 0.025 180);
-  --sidebar-accent-foreground: oklch(0.92 0.008 180);
-  --sidebar-border: oklch(0.22 0.02 180);
+  --sidebar-accent: oklch(0.96 0.005 180);
+  --sidebar-accent-foreground: oklch(0.15 0.015 180);
+  --sidebar-border: oklch(0.92 0.005 180);
   --sidebar-ring: oklch(0.65 0.2 160);
 
   /* Status & AI */
@@ -137,10 +137,15 @@
   --input: oklch(0.25 0.02 180);
   --ring: oklch(0.7 0.19 160);
 
-  --sidebar: oklch(0.08 0.012 180);
+  /* --- SIDEBAR DARK MODE (Fixed) --- */
+  --sidebar: oklch(0.08 0.012 180); /* Dark mode mein sidebar wapas dark black ho jayega */
   --sidebar-foreground: oklch(0.92 0.008 180);
   --sidebar-primary: oklch(0.7 0.19 160);
   --sidebar-primary-foreground: oklch(0.1 0.015 180);
+  --sidebar-accent: oklch(0.15 0.018 180);
+  --sidebar-accent-foreground: oklch(0.92 0.008 180);
+  --sidebar-border: oklch(0.2 0.018 180);
+  --sidebar-ring: oklch(0.7 0.19 160);
 
   --glow-primary: 0 0 40px oklch(0.7 0.19 160 / 0.3);
   --glow-primary-intense: 0 0 80px oklch(0.7 0.19 160 / 0.5);
