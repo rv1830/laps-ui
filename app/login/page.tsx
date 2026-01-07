@@ -23,10 +23,19 @@ export default function LoginPage() {
     try {
       const res = await authService.login(formData);
       toast.success("Welcome back!");
-      // Backend redirects
-      if (res.nextStep === "SETUP_PROFILE") router.push("/setup-profile");
-      else if (res.nextStep === "CREATE_WORKSPACE") router.push("/create-workspace");
-      else router.push("/dashboard");
+
+      // Backend response handle: checks for nextStep and workspaces
+      if (res.nextStep === "SETUP_PROFILE") {
+        router.push("/setup-profile");
+      } else if (res.nextStep === "CREATE_WORKSPACE") {
+        router.push("/create-workspace");
+      } else if (res.nextStep === "DASHBOARD" && res.workspaces && res.workspaces.length > 0) {
+        // Redirection to specific workspace dashboard
+        const workspaceId = res.workspaces[0].id;
+        router.push(`/dashboard/${workspaceId}`);
+      } else {
+        router.push("/login");
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Invalid credentials");
     } finally {
