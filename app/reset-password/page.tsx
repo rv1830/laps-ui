@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react"; // Suspense import kiya
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import ThemeToggle from "@/components/ThemeToggle";
 import Link from "next/link";
 
-export default function ResetPasswordPage() {
+// 1. Sara logic aur useSearchParams is separate component mein move kiya
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -40,6 +41,84 @@ export default function ResetPasswordPage() {
   };
 
   return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      className="w-full max-w-md bg-card border border-border/60 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden transition-colors duration-300"
+    >
+      {/* Glow Effect */}
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      
+      <div className="flex flex-col items-center mb-10 relative z-10">
+        <motion.div 
+          whileHover={{ scale: 1.05, rotate: -5 }}
+          className="w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6 shadow-inner shadow-primary/5"
+        >
+          <ShieldCheck className="w-10 h-10 text-primary" />
+        </motion.div>
+        <h1 className="text-3xl font-black tracking-tight text-foreground">Secure Reset</h1>
+        <p className="text-muted-foreground text-sm mt-2 text-center">
+          Create a unique password to protect your LAPS account
+        </p>
+      </div>
+
+      <form onSubmit={handleReset} className="space-y-5 relative z-10">
+        <div className="grid gap-2">
+          <Label htmlFor="newPassword">New Password</Label>
+          <div className="relative group">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input 
+              id="newPassword" 
+              type="password" 
+              placeholder="••••••••"
+              className="pl-10 h-12 bg-muted/30 focus:bg-background border-border/60 transition-all text-foreground" 
+              required 
+              value={passwords.newPassword} 
+              onChange={(e) => setPasswords({...passwords, newPassword: e.target.value})}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+          <div className="relative group">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input 
+              id="confirmPassword" 
+              type="password" 
+              placeholder="••••••••"
+              className="pl-10 h-12 bg-muted/30 focus:bg-background border-border/60 transition-all text-foreground" 
+              required 
+              value={passwords.confirmPassword} 
+              onChange={(e) => setPasswords({...passwords, confirmPassword: e.target.value})}
+            />
+          </div>
+        </div>
+
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button 
+            disabled={loading} 
+            className="w-full h-14 mt-4 text-base font-bold shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all"
+          >
+            {loading ? "Re-encrypting..." : "Update Password"} 
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
+        </motion.div>
+      </form>
+
+      <div className="mt-8 pt-6 border-t border-border/40 text-center">
+        <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
+           <Zap className="w-3 h-3 text-primary" /> End-to-end encrypted password reset
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+// 2. Main Page component jo Suspense Boundary provide karega
+export default function ResetPasswordPage() {
+  return (
     <div className="min-h-screen flex bg-background items-center justify-center p-6 relative selection:bg-primary/30">
       {/* Top Navigation Bar */}
       <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
@@ -55,78 +134,10 @@ export default function ResetPasswordPage() {
         <ThemeToggle />
       </div>
       
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        className="w-full max-w-md bg-card border border-border/60 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden transition-colors duration-300"
-      >
-        {/* Glow Effect */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="flex flex-col items-center mb-10 relative z-10">
-          <motion.div 
-            whileHover={{ scale: 1.05, rotate: -5 }}
-            className="w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6 shadow-inner shadow-primary/5"
-          >
-            <ShieldCheck className="w-10 h-10 text-primary" />
-          </motion.div>
-          <h1 className="text-3xl font-black tracking-tight text-foreground">Secure Reset</h1>
-          <p className="text-muted-foreground text-sm mt-2 text-center">
-            Create a unique password to protect your LAPS account
-          </p>
-        </div>
-
-        <form onSubmit={handleReset} className="space-y-5 relative z-10">
-          <div className="grid gap-2">
-            <Label htmlFor="newPassword">New Password</Label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <Input 
-                id="newPassword" 
-                type="password" 
-                placeholder="••••••••"
-                className="pl-10 h-12 bg-muted/30 focus:bg-background border-border/60 transition-all text-foreground" 
-                required 
-                value={passwords.newPassword} 
-                onChange={(e) => setPasswords({...passwords, newPassword: e.target.value})}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="confirmPassword">Confirm New Password</Label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <Input 
-                id="confirmPassword" 
-                type="password" 
-                placeholder="••••••••"
-                className="pl-10 h-12 bg-muted/30 focus:bg-background border-border/60 transition-all text-foreground" 
-                required 
-                value={passwords.confirmPassword} 
-                onChange={(e) => setPasswords({...passwords, confirmPassword: e.target.value})}
-              />
-            </div>
-          </div>
-
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button 
-              disabled={loading} 
-              className="w-full h-14 mt-4 text-base font-bold shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all"
-            >
-              {loading ? "Re-encrypting..." : "Update Password"} 
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </motion.div>
-        </form>
-
-        <div className="mt-8 pt-6 border-t border-border/40 text-center">
-          <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
-             <Zap className="w-3 h-3 text-primary" /> End-to-end encrypted password reset
-          </p>
-        </div>
-      </motion.div>
+      {/* Suspense Boundary wrapping the client logic */}
+      <Suspense fallback={<div className="text-muted-foreground animate-pulse font-bold">Verifying encryption keys...</div>}>
+        <ResetPasswordForm />
+      </Suspense>
     </div>
   );
 }
