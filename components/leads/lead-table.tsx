@@ -33,7 +33,7 @@ import {
 import { 
   MoreHorizontal, Mail, Phone, Calendar, FileText, 
   RefreshCw, Trash2, Send, Zap, 
-  AlertCircle, Pencil, CheckCircle2, Globe, User
+  AlertCircle, Pencil, CheckCircle2, User, Loader2
 } from "lucide-react"
 import { moodColors } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
@@ -89,7 +89,6 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
     
     try {
       setIsUpdateLoading(true)
-      // Sending ALL fields to backend as per your controller logic
       await leadService.updateLead(workspaceId, editingLead.id, { 
         fullName: editingLead.fullName, 
         email: editingLead.email, 
@@ -99,10 +98,11 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
         source: editingLead.source,
         qualificationLabel: editingLead.qualificationLabel,
         moodLabel: editingLead.moodLabel,
-        moodScore: Number(editingLead.moodScore)
+        moodScore: Number(editingLead.moodScore),
+        stageId: editingLead.stageId // Added stage update support
       })
       toast.success("Lead updated successfully")
-      setEditingLead(null)
+      setEditingLead(null) 
       await onRefresh()
     } catch (error) {
       toast.error("Failed to update lead")
@@ -112,7 +112,7 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* Bulk Actions */}
       {selectedLeads.length > 0 && (
         <div className="p-3 bg-primary/5 border-b border-border flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
@@ -148,22 +148,23 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
               <TableHead className="w-24 text-right pr-6 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center">
-                  <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground text-sm">
-                    <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-                    <span className="font-medium animate-pulse">Fetching leads...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : displayedLeads.length === 0 ? (
+          <TableBody className="relative">
+            {/* CARD LOADER OVERLAY */}
+            {(isLoading || isUpdateLoading) && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-[1px]">
+                <div className="bg-card p-6 rounded-xl shadow-2xl border border-primary/20 flex flex-col items-center gap-3">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                  <span className="text-xs font-bold uppercase tracking-tighter text-primary">Processing...</span>
+                </div>
+              </div>
+            )}
+
+            {displayedLeads.length === 0 && !isLoading ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center">
                    <div className="flex flex-col items-center justify-center gap-2">
                       <AlertCircle className="h-8 w-8 text-muted-foreground/50" />
-                      <p className="text-muted-foreground font-medium">No leads found in this pipeline.</p>
+                      <p className="text-muted-foreground font-medium">No leads found.</p>
                    </div>
                 </TableCell>
               </TableRow>
@@ -210,7 +211,8 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
                           {lead.stage?.name || "New Lead"}
                         </Badge>
                         <Badge className={cn("text-[9px] w-fit h-4 font-bold capitalize", 
-                          lead.qualificationLabel === 'qualified' ? "bg-green-500 hover:bg-green-500" : "bg-muted text-muted-foreground")}>
+                          lead.qualificationLabel === 'qualified' ? "bg-green-500 hover:bg-green-500" : 
+                          lead.qualificationLabel === 'unqualified' ? "bg-red-500 hover:bg-red-500" : "bg-muted text-muted-foreground")}>
                           {lead.qualificationLabel || "unqualified"}
                         </Badge>
                       </div>
@@ -253,7 +255,7 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
                           <DropdownMenuContent align="end" className="w-56 p-1">
                             <DropdownMenuItem 
                               className="text-xs font-bold py-2 cursor-pointer"
-                              onClick={() => setEditingLead(lead)}
+                              onClick={() => setEditingLead({ ...lead, stageId: lead.stage?.id })}
                             >
                               <Pencil className="mr-2 h-4 w-4 text-orange-500" /> Edit Details
                             </DropdownMenuItem>
@@ -294,60 +296,62 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
         </Table>
       </div>
 
-      {/* Full Edit Lead Dialog with ALL Fields */}
-      <Dialog open={!!editingLead} onOpenChange={() => setEditingLead(null)}>
-        <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+      {/* UPDATE LEAD PROFILE DIALOG */}
+      <Dialog open={!!editingLead} onOpenChange={(open) => !open && setEditingLead(null)}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <User className="h-5 w-5 text-primary" /> Update Lead Profile
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateLead} className="space-y-6 py-4">
-            {/* Primary Info Section */}
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
-                <Input 
-                  value={editingLead?.fullName || ""} 
-                  onChange={(e) => setEditingLead({...editingLead, fullName: e.target.value})}
-                />
+                <Input value={editingLead?.fullName || ""} onChange={(e) => setEditingLead({...editingLead, fullName: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email</Label>
-                <Input 
-                  type="email"
-                  value={editingLead?.email || ""} 
-                  onChange={(e) => setEditingLead({...editingLead, email: e.target.value})}
-                />
+                <Input type="email" value={editingLead?.email || ""} onChange={(e) => setEditingLead({...editingLead, email: e.target.value})} />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone</Label>
-                <Input 
-                  value={editingLead?.phone || ""} 
-                  onChange={(e) => setEditingLead({...editingLead, phone: e.target.value})}
-                />
+                <Input value={editingLead?.phone || ""} onChange={(e) => setEditingLead({...editingLead, phone: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Company</Label>
-                <Input 
-                  value={editingLead?.company || ""} 
-                  onChange={(e) => setEditingLead({...editingLead, company: e.target.value})}
-                />
+                <Input value={editingLead?.company || ""} onChange={(e) => setEditingLead({...editingLead, company: e.target.value})} />
               </div>
             </div>
 
-            {/* Categorization Section */}
+            {/* PIPELINE & QUALIFICATION SECTION */}
             <div className="grid grid-cols-2 gap-4 border-t pt-4">
               <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Lead Stage</Label>
+                <Select value={editingLead?.stageId || ""} onValueChange={(v) => setEditingLead({...editingLead, stageId: v})}>
+                  <SelectTrigger className="font-bold"><SelectValue placeholder="Select Stage" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="contacted">Contacted</SelectItem>
+                    <SelectItem value="replied">Replied</SelectItem>
+                    <SelectItem value="qualified">Qualified</SelectItem>
+                    <SelectItem value="call_booked">Call Booked</SelectItem>
+                    <SelectItem value="presented">Presented</SelectItem>
+                    <SelectItem value="proposal_sent">Proposal Sent</SelectItem>
+                    <SelectItem value="invoice_sent">Invoice Sent</SelectItem>
+                    <SelectItem value="won">Won</SelectItem>
+                    <SelectItem value="lost">Lost</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Qualification</Label>
-                <Select 
-                  value={editingLead?.qualificationLabel} 
-                  onValueChange={(v) => setEditingLead({...editingLead, qualificationLabel: v})}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={editingLead?.qualificationLabel || "unqualified"} onValueChange={(v) => setEditingLead({...editingLead, qualificationLabel: v})}>
+                  <SelectTrigger className="font-bold"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unqualified">Unqualified</SelectItem>
                     <SelectItem value="qualified">Qualified</SelectItem>
@@ -355,51 +359,47 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Lead Source</Label>
-                <Input 
-                  value={editingLead?.source || ""} 
-                  onChange={(e) => setEditingLead({...editingLead, source: e.target.value})}
-                  placeholder="e.g. website, manual, linkedin"
-                />
-              </div>
             </div>
 
-            {/* AI/Mood Section */}
+            {/* SOURCE & MOOD SECTION */}
             <div className="grid grid-cols-2 gap-4 border-t pt-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mood Label</Label>
-                <Select 
-                  value={editingLead?.moodLabel} 
-                  onValueChange={(v) => setEditingLead({...editingLead, moodLabel: v})}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Lead Source</Label>
+                <Select value={editingLead?.source || "Website Form"} onValueChange={(v) => setEditingLead({...editingLead, source: v})}>
+                  <SelectTrigger className="font-bold"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="positive">Positive</SelectItem>
-                    <SelectItem value="neutral">Neutral</SelectItem>
-                    <SelectItem value="negative">Negative</SelectItem>
+                    <SelectItem value="Website Form">Website Form</SelectItem>
+                    <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                    <SelectItem value="Referral">Referral</SelectItem>
+                    <SelectItem value="Cold Outreach">Cold Outreach</SelectItem>
+                    <SelectItem value="Google Ads">Google Ads</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mood Score (%)</Label>
-                <Input 
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={editingLead?.moodScore || 50} 
-                  onChange={(e) => setEditingLead({...editingLead, moodScore: e.target.value})}
-                />
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mood Label</Label>
+                <Select value={editingLead?.moodLabel || "neutral"} onValueChange={(v) => setEditingLead({...editingLead, moodLabel: v})}>
+                  <SelectTrigger className="font-bold"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="positive">Positive</SelectItem>
+                    <SelectItem value="neutral">Neutral</SelectItem>
+                    <SelectItem value="negative">Negative</SelectItem>
+                    <SelectItem value="unknown">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mood Score ({editingLead?.moodScore || 50}%)</Label>
+              <Input type="number" min="0" max="100" value={editingLead?.moodScore || 50} onChange={(e) => setEditingLead({...editingLead, moodScore: e.target.value})} />
+            </div>
+
             <DialogFooter className="pt-4 border-t">
-              <Button type="button" variant="ghost" className="text-xs font-bold" onClick={() => setEditingLead(null)}>
-                Cancel
-              </Button>
+              <Button type="button" variant="ghost" className="text-xs font-bold" onClick={() => setEditingLead(null)}>Cancel</Button>
               <Button type="submit" className="text-xs font-bold bg-green-600 hover:bg-green-700" disabled={isUpdateLoading}>
                 {isUpdateLoading ? <RefreshCw className="h-3 w-3 animate-spin mr-2" /> : <CheckCircle2 className="h-3 w-3 mr-2" />}
-                Save All Changes
+                Save Changes
               </Button>
             </DialogFooter>
           </form>
