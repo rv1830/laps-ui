@@ -33,7 +33,7 @@ import {
 import { 
   MoreHorizontal, Mail, Phone, Calendar, FileText, 
   RefreshCw, Trash2, Send, Zap, 
-  AlertCircle, Pencil, CheckCircle2, User, Loader2
+  AlertCircle, Pencil, CheckCircle2, User
 } from "lucide-react"
 import { moodColors } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
@@ -99,7 +99,7 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
         qualificationLabel: editingLead.qualificationLabel,
         moodLabel: editingLead.moodLabel,
         moodScore: Number(editingLead.moodScore),
-        stageId: editingLead.stageId // Added stage update support
+        stageId: editingLead.stageId 
       })
       toast.success("Lead updated successfully")
       setEditingLead(null) 
@@ -148,18 +148,29 @@ export function LeadTable({ leads, isLoading, onRefresh, workspaceId }: LeadTabl
               <TableHead className="w-24 text-right pr-6 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="relative">
-            {/* CARD LOADER OVERLAY */}
-            {(isLoading || isUpdateLoading) && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-[1px]">
-                <div className="bg-card p-6 rounded-xl shadow-2xl border border-primary/20 flex flex-col items-center gap-3">
-                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <span className="text-xs font-bold uppercase tracking-tighter text-primary">Processing...</span>
-                </div>
-              </div>
-            )}
-
-            {displayedLeads.length === 0 && !isLoading ? (
+          <TableBody>
+            {/* CARD LOADER SKELETON */}
+            {(isLoading || isUpdateLoading) ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i} className="animate-pulse">
+                  <TableCell><div className="h-4 w-4 bg-muted rounded" /></TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 bg-muted rounded-full" />
+                      <div className="space-y-2">
+                        <div className="h-3 w-24 bg-muted rounded" />
+                        <div className="h-2 w-32 bg-muted rounded" />
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell><div className="h-6 w-16 bg-muted rounded-full" /></TableCell>
+                  <TableCell><div className="h-6 w-20 bg-muted rounded-full" /></TableCell>
+                  <TableCell><div className="h-3 w-12 bg-muted rounded" /></TableCell>
+                  <TableCell><div className="h-3 w-16 bg-muted rounded" /></TableCell>
+                  <TableCell><div className="h-8 w-8 bg-muted rounded ml-auto" /></TableCell>
+                </TableRow>
+              ))
+            ) : displayedLeads.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center">
                    <div className="flex flex-col items-center justify-center gap-2">
