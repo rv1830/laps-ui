@@ -1,6 +1,6 @@
 "use client"
 
-import type { Lead } from "@/lib/types"
+import { useState } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,75 +8,73 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { stageLabels, moodColors } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
-import { Sparkles, Info } from "lucide-react"
+import { Sparkles, Info, Loader2, User } from "lucide-react"
+import { leadService } from "@/services/lead"
+import { toast } from "sonner"
 
-interface LeadDetailHeaderProps {
-  lead: Lead
-}
+export function LeadDetailHeader({ lead, workspaceId }: { lead: any, workspaceId: string }) {
+  const [isUpdating, setIsUpdating] = useState(false)
 
-export function LeadDetailHeader({ lead }: LeadDetailHeaderProps) {
+  const handleStageChange = async (newStage: string) => {
+    try {
+      setIsUpdating(true)
+      await leadService.updateLead(workspaceId, lead.id, { stageId: newStage })
+      toast.success("Stage updated successfully")
+    } catch (error) {
+      toast.error("Failed to update stage")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
   return (
     <div className="px-6 py-4 border-b border-border bg-card">
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="bg-primary/10 text-primary text-xl">
-              {lead.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
+        <div className="flex items-center gap-5">
+          <Avatar className="h-16 w-16 border-2 border-background shadow-sm">
+            <AvatarFallback className="bg-primary/5 text-primary text-xl font-bold uppercase">
+              {(lead.fullName || lead.email).substring(0, 2)}
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold text-foreground">{lead.name}</h1>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className={cn("capitalize gap-1", moodColors[lead.moodScore])}>
-                      {lead.moodScore}
-                      <Info className="h-3 w-3" />
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Mood confidence: {lead.moodConfidence}%</p>
-                    <p className="text-xs text-muted-foreground">Based on email sentiment analysis</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                {lead.fullName || lead.email}
+              </h1>
+              <Badge variant="outline" className={cn("capitalize px-2 py-0", moodColors[lead.moodLabel])}>
+                {lead.moodLabel}
+              </Badge>
             </div>
-            <p className="text-muted-foreground">
-              {lead.company} • {lead.email}
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              {lead.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
+            
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5" />
+                <span>{lead.owner ? `${lead.owner.firstName} ${lead.owner.lastName}` : "Unassigned"}</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-2">
+                <div className="w-20 h-1.5 bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: `${lead.moodScore}%` }} />
+                </div>
+                <span className="text-xs font-medium">{lead.moodScore}% Mood</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Stage Selector */}
-          <Select defaultValue={lead.stage}>
-            <SelectTrigger className="w-44">
-              <SelectValue />
+          <Select defaultValue={lead.stage?.id || lead.stageId} onValueChange={handleStageChange} disabled={isUpdating}>
+            <SelectTrigger className="w-48 h-9 font-medium">
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="Move Stage" />}
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(stageLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
+              {Object.entries(stageLabels).map(([id, label]) => (
+                <SelectItem key={id} value={id}>{label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-
-          {/* AI Actions */}
-          <Button variant="outline" className="gap-2 bg-transparent">
-            <Sparkles className="h-4 w-4" />
-            AI Assist
+          <Button variant="outline" size="sm" className="gap-2 border-primary/20 hover:bg-primary/5 text-primary">
+            <Sparkles className="h-4 w-4" /> AI Assist
           </Button>
         </div>
       </div>

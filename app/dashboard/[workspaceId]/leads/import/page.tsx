@@ -13,6 +13,9 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Upload, FileSpreadsheet, CheckCircle2, ArrowRight, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useParams } from "next/navigation"
+import { leadService } from "@/services/lead"
+import { toast } from "sonner"
 
 type ImportStep = "upload" | "mapping" | "preview" | "importing" | "complete"
 
@@ -24,6 +27,8 @@ const samplePreviewData = [
 
 export default function LeadImportPage() {
   const [step, setStep] = useState<ImportStep>("upload")
+  const params = useParams()
+  const workspaceId = params.workspaceId as string
   const [file, setFile] = useState<File | null>(null)
   const [progress, setProgress] = useState(0)
   const [duplicateHandling, setDuplicateHandling] = useState("skip")
@@ -36,17 +41,28 @@ export default function LeadImportPage() {
     }
   }
 
-  const handleStartImport = () => {
+
+  const handleStartImport = async () => {
     setStep("importing")
-    let p = 0
-    const interval = setInterval(() => {
-      p += 10
-      setProgress(p)
-      if (p >= 100) {
-        clearInterval(interval)
-        setStep("complete")
-      }
-    }, 500)
+    try {
+      // leads array would come from your CSV parser logic (e.g., papaparse)
+      const dummyLeads = [{ name: "Imported Lead", email: "test@test.com" }];
+      await leadService.importLeads(workspaceId, dummyLeads);
+
+      // Simulate progress UI
+      let p = 0;
+      const interval = setInterval(() => {
+        p += 20;
+        setProgress(p);
+        if (p >= 100) {
+          clearInterval(interval);
+          setStep("complete");
+        }
+      }, 200);
+    } catch (error) {
+      toast.error("Import failed");
+      setStep("upload");
+    }
   }
 
   return (

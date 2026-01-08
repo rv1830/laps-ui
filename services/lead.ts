@@ -29,5 +29,9 @@ export const leadService = {
   importLeads: async (workspaceId: string, leads: any[]) => {
     const response = await api.post(`/leads/workspaces/${workspaceId}/import`, { leads });
     return response.data;
-  }
+  },
+  deleteLead: async (workspaceId: string, leadId: string) => {
+  const response = await api.delete(`/leads/workspaces/${workspaceId}/${leadId}`);
+  return response.data;
+},
 };
