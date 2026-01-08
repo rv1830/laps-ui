@@ -29,4 +29,14 @@ export const authService = {
     const response = await api.get('/workspaces');
     return response.data;
   }
+  ,
+forgotPassword: async (email: string) => {
+  const response = await api.post('/forgot-password', { email });
+  return response.data;
+},
+
+resetPassword: async (data: any) => {
+  const response = await api.post('/reset-password', data);
+  return response.data;
+}
 };

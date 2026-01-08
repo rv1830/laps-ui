@@ -1,154 +1,177 @@
 "use client";
 
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Zap, TrendingUp, Users, Mail, Calendar, FileText, CheckCircle } from "lucide-react";
-import Link from "next/link"; // Next.js Link replacement
+import { 
+  ArrowRight, Play, Zap, TrendingUp, Users, 
+  Mail, Calendar, FileText, CheckCircle, MousePointer2 
+} from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 const Hero = () => {
   const stats = [
-    { icon: Users, value: "48", label: "New Leads", change: "+12%" },
-    { icon: Mail, value: "156", label: "Contacted", change: "+8%" },
-    { icon: Calendar, value: "18", label: "Calls Booked", change: "+22%" },
-    { icon: FileText, value: "5", label: "Won Deals", change: "+50%" },
+    { icon: Users, value: "48", label: "New Leads", change: "+12%", color: "text-blue-500" },
+    { icon: Mail, value: "156", label: "Contacted", change: "+8%", color: "text-purple-500" },
+    { icon: Calendar, value: "18", label: "Calls Booked", change: "+22%", color: "text-amber-500" },
+    { icon: FileText, value: "5", label: "Won Deals", change: "+50%", color: "text-emerald-500" },
   ];
 
   const features = [
-    "AI-powered lead qualification",
-    "Automated email sequences",
-    "Smart calendar scheduling",
-    "Proposal & invoice generation",
+    "AI Lead Qualification",
+    "Auto Email Sequences",
+    "Smart Scheduling",
+    "Smart Proposals",
   ];
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-background" />
-      <div className="absolute inset-0 bg-primary/5 opacity-50" />
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-32 pb-20 bg-background">
+      {/* --- ADVANCED BACKGROUND --- */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px]" />
+        {/* Animated Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+      </div>
 
-      {/* Grid Pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]"
-        style={{
-          backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
-          backgroundSize: '80px 80px'
-        }}
-      />
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* --- LEFT COLUMN: CONTENT --- */}
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }} 
+            animate={{ opacity: 1, x: 0 }} 
+            transition={{ duration: 0.8 }}
+          >
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-8 backdrop-blur-md"
+            >
+              <Zap className="w-4 h-4 text-primary fill-primary/20" />
+              <span className="text-xs font-bold tracking-widest uppercase text-primary">v2.0 is now live</span>
+            </motion.div>
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left Column - Content */}
-          <div className="max-w-2xl">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-              <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Sales Automation Platform</span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-[1.1]">
-              Your Complete
-              <span className="block text-primary">Sales Command</span>
-              <span className="block">Center</span>
+            <h1 className="text-5xl lg:text-7xl font-black tracking-tighter mb-6 leading-[0.9] text-foreground">
+              Automate Your <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-primary bg-[size:200%] animate-gradient">
+                Sales Engine
+              </span>
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed">
-              Stop juggling CRMs, email tools, and automation platforms. LAPS unifies lead capture, nurturing, scheduling, proposals, and invoicing into one powerful sales loop.
+            <p className="text-xl text-muted-foreground mb-10 leading-relaxed max-w-xl">
+              LAPS unifies your entire sales loop. From high-intent lead capture to automated closing—powered by AI sales intelligence.
             </p>
 
-            {/* Feature List */}
-            <div className="grid grid-cols-2 gap-3 mb-8">
-              {features.map((feature) => (
-                <div key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span>{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Button asChild size="lg" className="w-full sm:w-auto group h-12 px-8">
-                {/* Changed 'to' to 'href' */}
+            <div className="flex flex-wrap gap-4 mb-12">
+              <Button asChild size="lg" className="h-14 px-8 rounded-2xl bg-primary text-primary-foreground shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all font-bold group">
                 <Link href="/signup">
-                  Start Free Trial
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
+                  Get Started Free
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto group h-12 px-8">
-                <Play className="w-4 h-4 mr-2 fill-current" />
+              <Button variant="outline" size="lg" className="h-14 px-8 rounded-2xl border-border/60 backdrop-blur-sm font-bold group hover:bg-muted/50">
+                <Play className="w-4 h-4 mr-2 fill-primary text-primary" />
                 Watch Demo
               </Button>
             </div>
 
-            {/* Social Proof */}
-            <div className="mt-10 pt-8 border-t border-border">
-              <p className="text-sm text-muted-foreground mb-3">Trusted by 2,000+ sales teams worldwide</p>
-              <div className="flex flex-wrap items-center gap-6 opacity-60">
-                <span className="text-lg font-bold">TechFlow</span>
-                <span className="text-lg font-bold">ScaleUp</span>
-                <span className="text-lg font-bold">Velocity</span>
-                <span className="text-lg font-bold hidden sm:block">Acme</span>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 opacity-50 grayscale hover:grayscale-0 transition-all duration-500 cursor-default">
+               {['TechFlow', 'ScaleUp', 'Velocity', 'Acme'].map((brand) => (
+                 <span key={brand} className="text-lg font-black tracking-tighter italic">{brand}</span>
+               ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Right Column - Dashboard Preview */}
-          <div className="relative lg:block hidden">
-            {/* Glow Effect */}
-            <div className="absolute -inset-4 bg-primary/20 rounded-3xl blur-3xl opacity-30" />
-
-            {/* Dashboard Card */}
-            <div className="relative bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
-              {/* Header */}
-              <div className="p-4 sm:p-6 border-b border-border bg-muted/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
-                      <Zap className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">Command Center</h3>
-                      <p className="text-xs text-muted-foreground">AI-powered sales cockpit</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs text-primary font-medium">Live</span>
-                  </div>
+          {/* --- RIGHT COLUMN: ENHANCED DASHBOARD --- */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, rotateY: 20 }}
+            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="relative perspective-1000 lg:block hidden"
+          >
+            {/* Floating Elements */}
+            <motion.div 
+              animate={{ y: [0, -15, 0] }} 
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -top-10 -right-10 z-20 bg-background/80 backdrop-blur-xl border border-border p-4 rounded-2xl shadow-2xl"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
+                  $
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-black text-muted-foreground">Revenue Growth</p>
+                  <p className="text-lg font-bold text-foreground">+42.5%</p>
                 </div>
               </div>
+            </motion.div>
 
-              {/* Metrics Grid */}
-              <div className="p-4 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Key Metrics</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {stats.map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="p-3 sm:p-4 rounded-xl bg-muted/50 border border-border group hover:border-primary/30 transition-all duration-300"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <stat.icon className="w-4 h-4 text-primary" />
-                      </div>
-                      <div className="text-xl font-bold text-foreground mb-0.5">
-                        {stat.value}
-                      </div>
-                      <div className="text-xs text-muted-foreground mb-1">
-                        {stat.label}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs font-medium text-emerald-500">
-                        <TrendingUp className="w-3 h-3" />
-                        {stat.change}
-                      </div>
+            {/* Main Card */}
+            <div className="relative group overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 dark:from-white/5 dark:to-transparent backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)]">
+              
+              {/* Card Header */}
+              <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between bg-white/5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 ring-4 ring-primary/10">
+                    <Zap className="w-6 h-6 text-white fill-white/20" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg leading-none">Command Center</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                       <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                       <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">AI Loop Active</p>
                     </div>
+                  </div>
+                </div>
+                <MousePointer2 className="w-5 h-5 text-primary animate-bounce" />
+              </div>
+
+              {/* Card Body */}
+              <div className="p-8">
+                <div className="grid grid-cols-2 gap-6">
+                  {stats.map((stat, idx) => (
+                    <motion.div
+                      key={stat.label}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 + idx * 0.1 }}
+                      className="p-5 rounded-[1.5rem] bg-background/40 border border-white/5 hover:border-primary/40 transition-all group/stat relative overflow-hidden"
+                    >
+                      {/* Subtle Hover Glow */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover/stat:opacity-100 transition-opacity" />
+                      
+                      <div className={`p-2 rounded-lg ${stat.color} bg-current/10 w-fit mb-4`}>
+                        <stat.icon className="w-5 h-5" />
+                      </div>
+                      <div className="relative z-10">
+                        <div className="text-3xl font-black tracking-tighter mb-1">{stat.value}</div>
+                        <div className="text-xs font-medium text-muted-foreground mb-3">{stat.label}</div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-black bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full w-fit">
+                          <TrendingUp className="w-3 h-3" />
+                          {stat.change}
+                        </div>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
+
+                {/* Bottom Bar Feature */}
+                <div className="mt-8 p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-between">
+                   <div className="flex items-center gap-3 text-sm font-bold">
+                      <CheckCircle className="w-4 h-4 text-primary" />
+                      AI Lead Scored: 98/100
+                   </div>
+                   <div className="text-[10px] uppercase font-black text-primary hover:underline cursor-pointer">View Report</div>
+                </div>
               </div>
             </div>
-          </div>
+
+            {/* Background Glows for the card */}
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl z-[-1]" />
+          </motion.div>
+
         </div>
       </div>
     </section>

@@ -1,141 +1,173 @@
+"use client";
+
+import React from "react";
 import { 
-  Bot, 
-  Mail, 
-  Users, 
-  BarChart3, 
-  Zap, 
-  Calendar,
-  FileText,
-  Shield,
-  Workflow,
-  Target,
-  Clock,
-  Sparkles
+  Bot, Mail, Users, BarChart3, Zap, Calendar,
+  FileText, Shield, Workflow, Target, Clock, Sparkles 
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Features = () => {
   const features = [
     {
       icon: Users,
       title: "Lead Management",
-      description: "Centralized database with smart deduplication, custom fields, and visual pipeline boards. Never lose track of a prospect again.",
-      color: "primary",
+      description: "Centralized database with smart deduplication and visual pipeline boards. Never lose track of a prospect.",
+      color: "from-blue-500/20 to-cyan-500/20",
+      textColor: "text-blue-500",
+      span: "md:col-span-1"
     },
     {
       icon: Bot,
       title: "AI-Powered Qualification",
       description: "Intelligent lead scoring with mood detection and intent analysis. Know exactly who's ready to buy and when to reach out.",
-      color: "cyan",
+      color: "from-primary/20 to-purple-500/20",
+      textColor: "text-primary",
+      span: "md:col-span-2" 
     },
     {
       icon: Mail,
       title: "Email Sequences",
-      description: "Automated multi-step campaigns with personalization, A/B testing, and reply detection. Stop deals from dying due to inconsistent follow-up.",
-      color: "orange",
+      description: "Automated multi-step campaigns with personalization and A/B testing.",
+      color: "from-orange-500/20 to-yellow-500/20",
+      textColor: "text-orange-500",
+      span: "md:col-span-1"
     },
     {
       icon: Workflow,
       title: "Automation Engine",
-      description: "Replace Zapier and n8n with native triggers, conditions, and actions. Build workflows that run in Manual, Assisted, or Autopilot modes.",
-      color: "purple",
+      description: "Native triggers and actions. Build workflows that run in Manual or Autopilot modes.",
+      color: "from-purple-500/20 to-indigo-500/20",
+      textColor: "text-purple-500",
+      span: "md:col-span-1"
     },
     {
       icon: Calendar,
       title: "Smart Scheduling",
-      description: "Built-in booking links, calendar sync with Google/Outlook, automatic reminders, and no-show recovery workflows.",
-      color: "blue",
+      description: "Built-in booking links, calendar sync, and automatic no-show recovery.",
+      color: "from-blue-600/20 to-blue-400/20",
+      textColor: "text-blue-400",
+      span: "md:col-span-1"
     },
     {
       icon: FileText,
       title: "Proposals & Invoices",
-      description: "Generate branded proposals and invoices from templates. Attach payment links from Stripe or Razorpay—money goes directly to you.",
-      color: "yellow",
+      description: "Generate branded proposals and collect payments directly via Stripe or Razorpay.",
+      color: "from-emerald-500/20 to-teal-500/20",
+      textColor: "text-emerald-500",
+      span: "md:col-span-2"
     },
     {
       icon: Target,
       title: "Lead Capture",
-      description: "Native form builder, tracking links, and webhook integrations with Typeform, Tally, Webflow, and more. Own your lead generation.",
-      color: "primary",
+      description: "Native form builder and webhook integrations with Typeform, Webflow, and more.",
+      color: "from-rose-500/20 to-pink-500/20",
+      textColor: "text-rose-500",
+      span: "md:col-span-1"
     },
     {
       icon: BarChart3,
       title: "Funnel Analytics",
-      description: "Track every metric that matters: conversion rates, time-to-response, source performance, and revenue attribution.",
-      color: "cyan",
+      description: "Track conversion rates, time-to-response, and full revenue attribution.",
+      color: "from-cyan-500/20 to-blue-500/20",
+      textColor: "text-cyan-500",
+      span: "md:col-span-1"
     },
     {
       icon: Shield,
       title: "Compliance Built-in",
-      description: "Unsubscribe handling, suppression lists, rate limiting, and consent management. Stay out of spam folders and legal trouble.",
-      color: "orange",
-    },
+      description: "Consent management and suppression lists to stay out of spam folders.",
+      color: "from-slate-500/20 to-slate-400/20",
+      textColor: "text-slate-400",
+      span: "md:col-span-1"
+    }
   ];
 
-  const getIconColor = (color: string) => {
-    switch (color) {
-      case "primary": return "text-primary bg-primary/10 border-primary/20";
-      case "cyan": return "text-accent-cyan bg-accent-cyan/10 border-accent-cyan/20";
-      case "orange": return "text-accent-orange bg-accent-orange/10 border-accent-orange/20";
-      case "yellow": return "text-accent-yellow bg-accent-yellow/10 border-accent-yellow/20";
-      case "purple": return "text-accent-purple bg-accent-purple/10 border-accent-purple/20";
-      case "blue": return "text-accent-blue bg-accent-blue/10 border-accent-blue/20";
-      default: return "text-primary bg-primary/10 border-primary/20";
-    }
-  };
-
   return (
-    <section id="features" className="section-padding relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-muted/30" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+    <section id="features" className="relative py-24 bg-background overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.08)_0%,transparent_50%)] pointer-events-none" />
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-6 relative z-10">
+        
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+        <div className="text-center max-w-3xl mx-auto mb-20">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-sm"
+          >
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Powerful Features</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-            Everything You Need in
-            <span className="text-gradient"> One Platform</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Everything you need</span>
+          </motion.div>
+          
+          <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 leading-tight">
+            One Engine. <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">Infinite Possibilities.</span>
           </h2>
-          <p className="text-lg text-muted-foreground">
-            Stop paying for 10 different tools. LAPS replaces your CRM, email automation, calendar scheduler, proposal generator, and invoicing software.
+          
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Stop juggling 10 different subscriptions. LAPS unifies your entire sales tech stack into one powerful, AI-driven command center.
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div
+            <motion.div
               key={feature.title}
-              className="group relative p-6 rounded-2xl bg-card border border-border card-hover"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05 }}
+              className={`group relative p-8 rounded-[2.5rem] bg-card/40 backdrop-blur-xl border border-border/50 hover:border-primary/40 transition-all duration-500 overflow-hidden ${feature.span}`}
             >
-              {/* Icon */}
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center border mb-5 ${getIconColor(feature.color)}`}>
-                <feature.icon className="w-6 h-6" />
+              {/* Card Hover Gradient */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+              
+              {/* Icon Container */}
+              <div className="relative z-10 mb-10">
+                <div className="w-14 h-14 rounded-2xl bg-background border border-border flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                  <feature.icon className={`w-7 h-7 ${feature.textColor}`} />
+                </div>
               </div>
 
               {/* Content */}
-              <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
-                {feature.title}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
+              <div className="relative z-10">
+                <h3 className="text-xl font-black tracking-tight mb-3 text-foreground group-hover:text-primary transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors">
+                  {feature.description}
+                </p>
+              </div>
+
+              {/* Background Decor Icon */}
+              <Zap className={`absolute -bottom-4 -right-4 w-24 h-24 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity ${feature.textColor}`} />
+            </motion.div>
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-16 text-center">
-          <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-card border border-border">
-            <Clock className="w-5 h-5 text-primary" />
-            <span className="text-muted-foreground">Average setup time:</span>
-            <span className="font-semibold text-foreground">15 minutes</span>
+        {/* Bottom Stats Badge */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          className="mt-20 flex justify-center"
+        >
+          <div className="inline-flex items-center gap-6 px-8 py-4 rounded-[2rem] bg-card/50 border border-border/60 shadow-2xl backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold tracking-tight">15 Min Setup</span>
+            </div>
+            <div className="w-px h-4 bg-border" />
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold tracking-tight">Enterprise Grade Security</span>
+            </div>
           </div>
-        </div>
+        </motion.div>
+
       </div>
     </section>
   );
