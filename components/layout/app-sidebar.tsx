@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { authService } from "@/services/auth"
 import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton" // Ensure you have this from shadcn
 
 interface NavItem {
   title: string
@@ -142,11 +143,13 @@ export function AppSidebar() {
   const [userData, setUserData] = useState<any>(null)
   const [workspaces, setWorkspaces] = useState<any[]>([])
   const [hoveredWorkspace, setHoveredWorkspace] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
       try {
+        setIsLoading(true)
         const [statusRes, workspaceRes] = await Promise.all([
           authService.checkStatus(),
           authService.getWorkspaces()
@@ -155,6 +158,8 @@ export function AppSidebar() {
         setWorkspaces(workspaceRes.workspaces);
       } catch (error) {
         console.error("Failed to load sidebar data", error);
+      } finally {
+        setIsLoading(false)
       }
     };
     loadData();
@@ -202,34 +207,47 @@ export function AppSidebar() {
             <Zap className="h-6 w-6 text-primary-foreground fill-primary-foreground" />
           </div>
           <div>
-            <span className="text-xl pr-1 font-black tracking-tighter bg-gradient-to-r from-foreground to-foreground/90 bg-clip-text text-transparent italic">
+            <span className="text-xl pr-1 font-black tracking-tighter bg-gradient-to-r from-foreground to-foreground/90 bg-clip-text text-transparent italic text-nowrap">
               LAPS
             </span>
             <div className="flex items-center gap-1.5">
               <div className="flex h-4 w-4 items-center justify-center rounded-sm bg-accent/20">
                 <Bot className="h-2.5 w-2.5 text-accent" />
               </div>
-              <span className="text-[9px] text-accent  tracking-[0.1em] uppercase">AI SALES ENGINE</span>
+              <span className="text-[9px] text-accent tracking-[0.1em] uppercase">AI SALES ENGINE</span>
             </div>
           </div>
         </div>
 
+        {/* Workspace Switcher with Skeleton Loader */}
         <DropdownMenu onOpenChange={(open) => !open && setHoveredWorkspace(null)}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               className="w-full justify-between h-auto py-4 px-4 bg-sidebar-accent/40 hover:bg-sidebar-accent border border-sidebar-border/60 text-sidebar-accent-foreground rounded-2xl transition-all duration-300 group cursor-pointer"
             >
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-primary/10 to-accent/10 text-primary border border-primary/20 group-hover:scale-110 transition-transform">
-                  <Building2 className="h-5 w-5" />
-                </div>
-                <div className="text-left overflow-hidden">
-                  <p className="text-sm  truncate tracking-tight">{currentWorkspace?.name || "Loading..."}</p>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{currentWorkspace?.role || "Admin"}</p>
-                </div>
+              <div className="flex items-center gap-3 overflow-hidden w-full">
+                {isLoading ? (
+                  <div className="flex items-center gap-3 w-full">
+                    <Skeleton className="h-9 w-9 shrink-0 rounded-xl bg-sidebar-border" />
+                    <div className="space-y-1.5 flex-1">
+                      <Skeleton className="h-4 w-24 bg-sidebar-border" />
+                      <Skeleton className="h-3 w-12 bg-sidebar-border" />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-primary/10 to-accent/10 text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <div className="text-left overflow-hidden">
+                      <p className="text-sm truncate tracking-tight">{currentWorkspace?.name}</p>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{currentWorkspace?.role}</p>
+                    </div>
+                  </>
+                )}
               </div>
-              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
+              {!isLoading && <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />}
             </Button>
           </DropdownMenuTrigger>
           
@@ -285,19 +303,19 @@ export function AppSidebar() {
                    </div>
 
                   <div className="flex items-center justify-between text-[11px] font-bold tracking-wide">
-  <div className="flex items-center gap-3 text-emerald-500">
-    <Globe className="h-4 w-4" /> {/* Icon change for better context */}
-    <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Timezone</span>
-  </div>
-  <span className="ml-auto opacity-70 text-zinc-200">
-    {hoveredWorkspace.timezone || "Not Set"}
-  </span>
+                    <div className="flex items-center gap-3 text-emerald-500">
+                      <Globe className="h-4 w-4" />
+                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Timezone</span>
+                    </div>
+                    <span className="ml-auto opacity-70 text-zinc-200">
+                      {hoveredWorkspace.timezone || "Not Set"}
+                    </span>
 </div>
                 </div>
               </div>
             )}
 
-            <DropdownMenuLabel className="px-3 py-2 text-[10px]  text-muted-foreground uppercase tracking-[0.2em] opacity-70">Switch Workspace</DropdownMenuLabel>
+            <DropdownMenuLabel className="px-3 py-2 text-[10px] text-muted-foreground uppercase tracking-[0.2em] opacity-70">Switch Workspace</DropdownMenuLabel>
             <DropdownMenuSeparator className="mx-2 opacity-50" />
             
             {workspaces.map((workspace) => (
@@ -319,7 +337,7 @@ export function AppSidebar() {
             
             <DropdownMenuSeparator className="mx-2 opacity-50" />
             <Link href="/create-workspace" className="w-full cursor-pointer">
-              <DropdownMenuItem className="cursor-pointer p-3.5 rounded-xl hover:bg-primary/5 hover:text-primary transition-colors gap-3  text-sm">
+              <DropdownMenuItem className="cursor-pointer p-3.5 rounded-xl hover:bg-primary/5 hover:text-primary transition-colors gap-3 text-sm">
                 <PlusCircle className="h-4 w-4" />
                 <span>Create Workspace</span>
               </DropdownMenuItem>
@@ -342,7 +360,7 @@ export function AppSidebar() {
         </div>
 
         <div className="pt-8 border-t border-sidebar-border/30">
-          <p className="px-4 mb-4 text-[10px]  text-muted-foreground uppercase tracking-[0.2em] opacity-60">System Config</p>
+          <p className="px-4 mb-4 text-[10px] text-muted-foreground uppercase tracking-[0.2em] opacity-60">System Config</p>
           <div className="space-y-1.5">
             {getSettingsItems(workspaceId).map((item) => (
               <NavItemComponent
@@ -367,20 +385,20 @@ export function AppSidebar() {
               <div className="relative">
                 <Avatar className="h-11 w-11 border-2 border-primary/20 group-hover:border-primary/50 transition-all">
                   <AvatarImage src={userData?.avatar} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs  uppercase tracking-tighter">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs uppercase tracking-tighter">
                     {userData?.firstName?.charAt(0)}{userData?.lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-green-500 border-[3px] border-sidebar shadow-sm" />
               </div>
               <div className="text-left flex-1 min-w-0">
-                <p className="text-sm  truncate group-hover:text-primary transition-colors">{userData?.firstName} {userData?.lastName}</p>
+                <p className="text-sm truncate group-hover:text-primary transition-colors">{userData?.firstName} {userData?.lastName}</p>
                 <p className="text-[10px] text-muted-foreground truncate font-bold opacity-70">{userData?.email}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top" sideOffset={12} className="w-64 p-2 rounded-2xl shadow-2xl border-sidebar-border">
-            <DropdownMenuLabel className="px-3 py-2 text-xs  text-muted-foreground uppercase opacity-70">My Account</DropdownMenuLabel>
+            <DropdownMenuLabel className="px-3 py-2 text-xs text-muted-foreground uppercase opacity-70">My Account</DropdownMenuLabel>
             <DropdownMenuSeparator className="opacity-50" />
             <Link href={`/dashboard/${workspaceId}/settings/profile`} className="cursor-pointer">
               <DropdownMenuItem className="cursor-pointer p-3.5 rounded-xl gap-3 font-bold text-sm">
@@ -390,7 +408,7 @@ export function AppSidebar() {
             <DropdownMenuSeparator className="opacity-50" />
             <DropdownMenuItem 
               onClick={handleLogout} 
-              className="text-destructive cursor-pointer p-3.5 rounded-xl gap-3 hover:bg-destructive/10  text-sm"
+              className="text-destructive cursor-pointer p-3.5 rounded-xl gap-3 hover:bg-destructive/10 text-sm"
             >
               <LogOut className="h-4 w-4" /> Sign Out
             </DropdownMenuItem>
@@ -420,7 +438,7 @@ function NavItemComponent({ item, isActive, isOpen, onToggle }: any) {
             >
               <span className="flex items-center gap-4">
                 <Icon className={cn("h-5 w-5 transition-colors", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                <span className="text-sm  tracking-tight">{item.title}</span>
+                <span className="text-sm tracking-tight">{item.title}</span>
               </span>
               <div className="flex items-center gap-2">
                 {item.isAI && <Sparkles className="h-3 w-3 text-accent fill-accent animate-pulse" />}
@@ -455,9 +473,9 @@ function NavItemComponent({ item, isActive, isOpen, onToggle }: any) {
             )}
           >
             <Icon className={cn("h-5 w-5 transition-colors", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-            <span className="text-sm  tracking-tight">{item.title}</span>
+            <span className="text-sm tracking-tight">{item.title}</span>
             {item.badge && (
-              <Badge className="ml-auto h-5 min-w-5 px-1.5 text-[9px]  bg-primary text-primary-foreground border-0 rounded-full shadow-lg">
+              <Badge className="ml-auto h-5 min-w-5 px-1.5 text-[9px] bg-primary text-primary-foreground border-0 rounded-full shadow-lg">
                 {item.badge}
               </Badge>
             )}
