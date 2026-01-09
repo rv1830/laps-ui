@@ -27,7 +27,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -46,7 +45,6 @@ export default function LeadsPage() {
   const [leadsData, setLeadsData] = useState<{ leads: any[], pagination: { total?: number } }>({ leads: [], pagination: {} })
   const [loading, setLoading] = useState(true)
 
-  // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   useEffect(() => setMounted(true), [])
@@ -94,10 +92,9 @@ export default function LeadsPage() {
   return (
     <div className="flex flex-col h-screen bg-background transition-colors duration-300">
 
-      {/* --- PREMIUM TOP HEADER --- */}
+      {/* TOP HEADER */}
       <header className="h-20 border-b border-border/50 bg-background/80 backdrop-blur-md sticky top-0 z-40 px-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {/* Sidebar Toggle (Visible only when sidebar is closed) */}
           {!isSidebarOpen && (
             <Button
               variant="ghost"
@@ -129,7 +126,7 @@ export default function LeadsPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" className="hidden sm:flex gap-2 border-primary/20 hover:bg-primary/5 text-primary rounded-full px-4 hover:scale-105 transition-transform">
+          <Button variant="outline" size="sm" className="hidden sm:flex gap-2 border-primary/20 hover:bg-primary/5 text-primary rounded-full px-4 transition-transform">
             <Sparkles className="h-4 w-4" /> AI Assist
           </Button>
 
@@ -141,32 +138,23 @@ export default function LeadsPage() {
                 theme === 'light' ? "translate-x-0" : theme === 'dark' ? "translate-x-[34px]" : "translate-x-[68px]"
               )}
             />
-            <button
-              onClick={() => setTheme('light')}
-              className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
-            >
+            <button onClick={() => setTheme('light')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground")}>
               <Sun className="h-3.5 w-3.5" />
             </button>
-            <button
-              onClick={() => setTheme('dark')}
-              className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
-            >
+            <button onClick={() => setTheme('dark')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground")}>
               <Moon className="h-3.5 w-3.5" />
             </button>
-            <button
-              onClick={() => setTheme('system')}
-              className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
-            >
+            <button onClick={() => setTheme('system')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground")}>
               <Monitor className="h-3.5 w-3.5" />
             </button>
           </div>
 
           <div className="hidden md:flex items-center gap-1 bg-secondary/30 p-1 rounded-full border border-border/40">
-            <Button variant="ghost" size="sm" className="rounded-full h-8 px-4 text-[11px] font-bold hover:bg-background transition-all">
+            <Button variant="ghost" size="sm" className="rounded-full h-8 px-4 text-[11px] font-bold">
               <Download className="h-3.5 w-3.5 mr-1" /> EXPORT
             </Button>
             <Link href={`/dashboard/${workspaceId}/leads/import`}>
-              <Button variant="ghost" size="sm" className="rounded-full h-8 px-4 text-[11px] font-bold hover:bg-background transition-all">
+              <Button variant="ghost" size="sm" className="rounded-full h-8 px-4 text-[11px] font-bold">
                 <Upload className="h-3.5 w-3.5 mr-1" /> IMPORT
               </Button>
             </Link>
@@ -182,8 +170,8 @@ export default function LeadsPage() {
           {/* QUICK ACTIONS */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-10 w-10 rounded-full border-border/50 bg-background/50 flex items-center justify-center p-0 hover:border-primary/50 transition-colors group">
-                <Zap className="h-4 w-4 text-primary group-hover:fill-primary transition-all" />
+              <Button variant="outline" className="h-10 w-10 rounded-full border-border/50 bg-background/50 p-0 hover:border-primary/50 group">
+                <Zap className="h-4 w-4 text-primary group-hover:fill-primary" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-border/50 backdrop-blur-xl">
@@ -193,7 +181,7 @@ export default function LeadsPage() {
                   <Calendar className="h-4 w-4" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-sm">Schedule Demo</span>
+                <span className="font-bold text-sm">Schedule Demo</span>
                   <span className="text-[10px] text-muted-foreground">Sync with Google Calendar</span>
                 </div>
               </DropdownMenuItem>
@@ -202,7 +190,7 @@ export default function LeadsPage() {
                   <FileText className="h-4 w-4" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-sm">Create Task</span>
+                <span className="font-bold text-sm">Create Task</span>
                   <span className="text-[10px] text-muted-foreground">Assign follow-up work</span>
                 </div>
               </DropdownMenuItem>
@@ -211,7 +199,7 @@ export default function LeadsPage() {
                   <Mail className="h-4 w-4" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-sm">Send Email</span>
+                <span className="font-bold text-sm">Send Email</span>
                   <span className="text-[10px] text-muted-foreground">Use a saved template</span>
                 </div>
               </DropdownMenuItem>
@@ -238,14 +226,15 @@ export default function LeadsPage() {
             <span className="absolute top-3 right-3.5 h-2 w-2 bg-red-500 rounded-full border-2 border-background animate-pulse" />
           </Button>
 
+          {/* UPDATED DIALOG: Compact Size + Horizontal Form */}
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
-              <div className="bg-primary/5 p-8 border-b border-primary/10 text-center">
+            <DialogContent className="sm:max-w-[950px] w-[95vw] rounded-[1.5rem] border-none shadow-2xl p-0 overflow-hidden bg-background">
+              <div className="bg-primary/5 p-3 border-b border-primary/10 flex items-center px-8">
                 <DialogHeader>
-                  <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic text-primary">Create Lead</DialogTitle>
+                  <DialogTitle className="text-base font-black tracking-tighter uppercase italic text-primary">Create Lead Intelligence</DialogTitle>
                 </DialogHeader>
               </div>
-              <div className="p-8 bg-background">
+              <div className="p-6">
                 <CreateLeadForm
                   workspaceId={workspaceId}
                   onSuccess={() => {
@@ -259,7 +248,7 @@ export default function LeadsPage() {
         </div>
       </header>
 
-      {/* --- CONTENT AREA --- */}
+      {/* CONTENT AREA */}
       <main className="flex flex-1 overflow-hidden p-6 gap-6">
         {/* SIDEBAR WRAPPER */}
         <div
@@ -276,7 +265,6 @@ export default function LeadsPage() {
           />
         </div>
 
-        {/* Table Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden bg-card border border-border/80 rounded-[2.5rem] shadow-sm relative transition-all duration-500">
           <div className="px-8 py-5 border-b border-border/50 bg-background/50 backdrop-blur-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -295,12 +283,7 @@ export default function LeadsPage() {
           </div>
 
           <div className="flex-1 overflow-hidden px-6 bg-background/20">
-            <LeadTable
-              leads={filteredLeads}
-              isLoading={loading}
-              onRefresh={fetchLeads}
-              workspaceId={workspaceId}
-            />
+            <LeadTable leads={filteredLeads} isLoading={loading} onRefresh={fetchLeads} workspaceId={workspaceId} />
           </div>
         </div>
       </main>
