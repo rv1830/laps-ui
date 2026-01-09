@@ -4,16 +4,15 @@ import { useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, Flame, Clock, Calendar, Plus, Sparkles, Star } from "lucide-react"
+import { Users, Flame, Clock, Calendar, Sparkles } from "lucide-react"
 import { isToday, subDays, parseISO } from "date-fns"
 
 export function LeadSegments({ 
-  apiResponse, // Pura API response pass karein (jisme data.leads ho)
+  apiResponse, 
   selectedSegment, 
   onSelectSegment 
 }: any) {
   
-  // API se leads nikalna (safely handle karna agar data na ho)
   const leads = useMemo(() => apiResponse?.leads || [], [apiResponse]);
 
   const segmentStats = useMemo(() => {
@@ -22,16 +21,12 @@ export function LeadSegments({
 
     return {
       all: leads.length,
-      // New: Jo aaj create hue hain
       new: leads.filter((l: any) => l.createdAt && isToday(parseISO(l.createdAt))).length,
-      // Hot: MoodScore >= 80 (Aapke data mein 83 hai, toh ye 1 dikhayega)
       hot: leads.filter((l: any) => (l.moodScore || 0) >= 80).length,
-      // No Response: Jinka lastContactedAt null hai aur 7 din se purane leads hain
       no_response: leads.filter((l: any) => {
         const createdDate = parseISO(l.createdAt);
         return !l.lastContactedAt && createdDate < sevenDaysAgo;
       }).length,
-      // Booked: Stage name se match karega (Aapke data mein "Call Booked" hai)
       booked: leads.filter((l: any) => 
         l.stage?.name?.toLowerCase().includes('booked')
       ).length,
@@ -47,17 +42,16 @@ export function LeadSegments({
   ]
 
   return (
-    <aside className="w-64 border-r border-border/40 bg-card/30 backdrop-blur-xl p-4 flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6 px-2">
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
+    <aside className="w-60 border-r border-border/50 bg-card/20 backdrop-blur-md flex flex-col h-full overflow-hidden select-none">
+      {/* Header Section */}
+      <div className="flex items-center justify-between mt-6 mb-6 px-6">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">
           Smart Filters
         </h3>
-        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-primary/10">
-          <Plus className="h-4 w-4" />
-        </Button>
       </div>
 
-      <nav className="space-y-1.5 flex-1">
+      {/* Navigation - No Horizontal Scroll */}
+      <nav className="px-3 space-y-1 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         {segments.map((segment) => {
           const Icon = segment.icon
           const isActive = selectedSegment === segment.id
@@ -67,29 +61,38 @@ export function LeadSegments({
               key={segment.id}
               onClick={() => onSelectSegment(segment.id)}
               className={cn(
-                "w-full group relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-300",
+                "w-full group relative flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200",
                 isActive 
-                  ? "bg-primary/[0.08] text-primary shadow-sm" 
-                  : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                  ? "bg-primary/[0.06] text-primary shadow-[inset_0_0_0_1px_rgba(var(--primary),0.1)]" 
+                  : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
               )}
             >
+              {/* Active Indicator Bar */}
               {isActive && (
-                <div className="absolute left-0 top-2 bottom-2 w-1 bg-primary rounded-r-full shadow-[0_0_8px_rgba(var(--primary),0.4)]" />
+                <div className="absolute left-0 top-3 bottom-3 w-1 bg-primary rounded-r-full shadow-[2px_0_8px_rgba(var(--primary),0.3)]" />
               )}
               
               <div className="flex items-center gap-3">
                 <div className={cn(
-                  "flex items-center justify-center h-8 w-8 rounded-lg border border-transparent transition-all",
-                  isActive ? "bg-background shadow-sm border-primary/10 scale-110" : "bg-secondary/40"
+                  "flex items-center justify-center h-8 w-8 rounded-lg transition-all border",
+                  isActive 
+                    ? "bg-background border-primary/20 shadow-sm scale-105" 
+                    : "bg-secondary/30 border-transparent"
                 )}>
                   <Icon className={cn("h-4 w-4", segment.color)} />
                 </div>
-                <span className={cn("text-sm font-medium", isActive && "font-bold")}>
+                <span className={cn("text-sm font-medium tracking-tight", isActive && "font-bold text-foreground")}>
                   {segment.label}
                 </span>
               </div>
 
-              <Badge variant={isActive ? "default" : "secondary"} className="text-[10px] px-1.5 h-5 min-w-[20px] justify-center">
+              <Badge 
+                variant={isActive ? "default" : "secondary"} 
+                className={cn(
+                  "text-[10px] px-1.5 h-5 min-w-[20px] justify-center font-bold",
+                  !isActive && "bg-secondary/50 text-muted-foreground border-none"
+                )}
+              >
                 {segment.count}
               </Badge>
             </button>
@@ -97,18 +100,21 @@ export function LeadSegments({
         })}
       </nav>
 
-      {/* Dynamic Insight Card */}
-      <div className="mt-auto pt-4">
-        <div className="rounded-2xl bg-gradient-to-br from-orange-500/10 via-transparent to-transparent p-4 border border-orange-500/10 relative overflow-hidden group">
-          <div className="absolute -right-2 -top-2 opacity-10 group-hover:rotate-12 transition-transform">
-            <Flame className="h-12 w-12 text-orange-500" />
+      {/* Insight Card - Fixed English & Improved Border */}
+      <div className="p-4 mt-auto">
+        <div className="rounded-2xl bg-gradient-to-br from-orange-500/[0.07] via-orange-500/[0.02] to-transparent p-4 border border-orange-500/20 relative overflow-hidden group shadow-sm">
+          <div className="absolute -right-1 -top-1 opacity-[0.08] group-hover:rotate-12 group-hover:scale-110 transition-transform duration-500">
+            <Flame className="h-14 w-14 text-orange-500" />
           </div>
-          <p className="text-[11px] font-bold text-orange-600 dark:text-orange-400 flex items-center gap-2 mb-1">
-            <Sparkles className="h-3 w-3" /> ACTION REQUIRED
-          </p>
-          <p className="text-[10px] text-muted-foreground leading-tight">
-            Aapke paas <span className="text-foreground font-bold">{segmentStats.hot} Hot Leads</span> hain jo conversion ke kaafi kareeb hain!
-          </p>
+          
+          <div className="relative z-10">
+            <p className="text-[10px] font-black text-orange-600 dark:text-orange-400 flex items-center gap-1.5 mb-2 tracking-widest uppercase">
+              <Sparkles className="h-3 w-3 fill-orange-500/20" /> Action Required
+            </p>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              You have <span className="text-foreground font-bold">{segmentStats.hot} Hot Leads</span> ready for conversion. Follow up now to close the deal!
+            </p>
+          </div>
         </div>
       </div>
     </aside>
