@@ -1,8 +1,8 @@
-import {api} from "@/lib/api";
+import { api } from "@/lib/api";
 
 export const leadService = {
   // Saare leads fetch karna (Pagination & Filters)
-  getLeads: async (workspaceId: string, params?: { page?: number; search?: string; stageId?: string }) => {
+  getLeads: async (workspaceId: string, params?: { page?: number; limit?: number; search?: string; stageId?: string }) => {
     const response = await api.get(`/leads/workspaces/${workspaceId}`, { params });
     return response.data; // Includes leads and pagination info
   },
@@ -31,7 +31,7 @@ export const leadService = {
     return response.data;
   },
   deleteLead: async (workspaceId: string, leadId: string) => {
-  const response = await api.delete(`/leads/workspaces/${workspaceId}/${leadId}`);
-  return response.data;
-},
+    const response = await api.delete(`/leads/workspaces/${workspaceId}/${leadId}`);
+    return response.data;
+  },
 };
