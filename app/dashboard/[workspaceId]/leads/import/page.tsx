@@ -9,13 +9,14 @@ import { useTheme } from "next-themes"
 import { 
   Upload, FileSpreadsheet, CheckCircle2, ArrowRight, X, 
   Loader2, Zap, ShieldCheck, Database, Sparkles,
-  Layout, Sun, Moon, Monitor, Bell, Calendar, FileText, Settings, ChevronLeft
+  Layout, Sun, Moon, Monitor, Bell, Calendar, FileText, Settings, Info
 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import { leadService } from "@/services/lead"
 import {
@@ -105,13 +106,13 @@ export default function LeadImportPage() {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden font-sans transition-colors duration-300">
       
-      {/* HEADER - DYNAMIC COLORS */}
+      {/* HEADER */}
       <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50 px-8 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Button 
             variant="outline" 
             onClick={() => router.push(`/dashboard/${workspaceId}/leads`)}
-            className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 px-6 font-black uppercase tracking-tighter text-[11px] h-9"
+            className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 px-6 font-black uppercase tracking-tighter text-[11px] h-9 cursor-pointer"
           >
             Back to Leads
           </Button>
@@ -132,7 +133,6 @@ export default function LeadImportPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* THEME SELECTOR - DARK MODE SUPPORTED */}
           <div className="flex bg-secondary/50 p-1 rounded-full border border-border relative w-[108px] h-9 items-center overflow-hidden">
             <div
               className={cn(
@@ -140,21 +140,20 @@ export default function LeadImportPage() {
                 theme === 'light' ? "translate-x-0" : theme === 'dark' ? "translate-x-[34px]" : "translate-x-[68px]"
               )}
             />
-            <button onClick={() => setTheme('light')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground")}>
+            <button onClick={() => setTheme('light')} className={cn("z-10 flex-1 flex items-center justify-center cursor-pointer", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground")}>
               <Sun className="h-3.5 w-3.5" />
             </button>
-            <button onClick={() => setTheme('dark')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground")}>
+            <button onClick={() => setTheme('dark')} className={cn("z-10 flex-1 flex items-center justify-center cursor-pointer", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground")}>
               <Moon className="h-3.5 w-3.5" />
             </button>
-            <button onClick={() => setTheme('system')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground")}>
+            <button onClick={() => setTheme('system')} className={cn("z-10 flex-1 flex items-center justify-center cursor-pointer", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground")}>
               <Monitor className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          {/* QUICK ACTIONS */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-10 w-10 rounded-full border-border bg-background p-0 hover:border-primary/50 group">
+              <Button variant="outline" className="h-10 w-10 rounded-full border-border bg-background p-0 hover:border-primary/50 group cursor-pointer">
                 <Zap className="h-4 w-4 text-primary group-hover:fill-primary" />
               </Button>
             </DropdownMenuTrigger>
@@ -176,8 +175,7 @@ export default function LeadImportPage() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* NOTIFICATION */}
-          <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-border relative bg-background hover:bg-secondary transition-colors">
+          <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-border relative bg-background hover:bg-secondary transition-colors cursor-pointer">
             <Bell className="h-4 w-4 text-muted-foreground" />
             <span className="absolute top-3 right-3.5 h-2 w-2 bg-primary rounded-full border-2 border-background animate-pulse" />
           </Button>
@@ -188,7 +186,6 @@ export default function LeadImportPage() {
       <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gradient-to-b from-background to-secondary/20">
         <div className="max-w-5xl mx-auto space-y-8">
           
-          {/* STEP INDICATOR - DYNAMIC COLORS */}
           <div className="flex items-center justify-center gap-4 mb-12">
             {["Upload", "Analyze", "Sync"].map((label, idx) => (
               <React.Fragment key={label}>
@@ -214,17 +211,13 @@ export default function LeadImportPage() {
           <AnimatePresence mode="wait">
             {/* UPLOAD VIEW */}
             {step === "upload" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="group relative"
-              >
-                <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-[80px] animate-pulse" />
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="group relative">
                 <div 
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files[0]) onFileSelect(e.dataTransfer.files[0]); }}
                   className={cn(
-                    "relative overflow-hidden border-2 border-dashed rounded-[2.5rem] p-24 text-center transition-all duration-500 bg-card/40 backdrop-blur-md",
+                    "relative overflow-hidden border-2 border-dashed rounded-[2.5rem] p-24 text-center transition-all duration-500 bg-card/40 backdrop-blur-md cursor-pointer",
                     isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "border-border hover:border-primary/40"
                   )}
                 >
@@ -258,7 +251,7 @@ export default function LeadImportPage() {
                         <p className="text-xs font-bold text-primary uppercase tracking-widest">{parsedLeads.length} Records Detected</p>
                       </div>
                     </div>
-                    <Button variant="ghost" className="rounded-full font-bold text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => setStep("upload")}>
+                    <Button variant="ghost" className="rounded-full font-bold text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer" onClick={() => setStep("upload")}>
                       <X className="h-4 w-4 mr-2" /> Reset
                     </Button>
                   </div>
@@ -321,31 +314,51 @@ export default function LeadImportPage() {
             {step === "complete" && (
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                 <Card className="border border-border shadow-2xl bg-card rounded-[3rem] overflow-hidden text-center">
-                  <CardContent className="p-16">
-                    <div className="h-24 w-24 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-lg shadow-primary/10">
-                      <ShieldCheck className="h-12 w-12" />
+                  <CardContent className="p-12">
+                    <div className="h-20 w-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-lg shadow-primary/10">
+                      <ShieldCheck className="h-10 w-10" />
                     </div>
-                    <h2 className="text-4xl font-black tracking-tighter uppercase italic mb-4 text-foreground">Sync Successful</h2>
-                    <p className="text-muted-foreground font-bold mb-12 uppercase tracking-[0.2em] text-[10px] italic">Operational data has been secured in the workspace.</p>
+                    <h2 className="text-4xl font-black tracking-tighter uppercase italic mb-2 text-foreground">Sync Successful</h2>
+                    <p className="text-muted-foreground font-bold mb-10 uppercase tracking-[0.2em] text-[10px] italic">Operational data has been secured in the workspace.</p>
                     
-                    <div className="grid grid-cols-3 gap-6 mb-12">
+                    <div className="grid grid-cols-3 gap-6 mb-10">
                       {[
                         { label: "Imported", val: results.imported, color: "text-primary" },
                         { label: "Skipped", val: results.skipped, color: "text-orange-500" },
                         { label: "Errors", val: results.errors, color: "text-red-500" }
                       ].map(res => (
-                        <div key={res.label} className="p-8 rounded-3xl bg-muted/50 border border-border shadow-inner">
+                        <div key={res.label} className="p-6 rounded-3xl bg-muted/50 border border-border shadow-inner">
                           <p className={cn("text-3xl font-black tracking-tighter mb-1", res.color)}>{res.val}</p>
                           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{res.label}</p>
                         </div>
                       ))}
                     </div>
 
+                    {/* WHY DATA WAS SKIPPED SECTION */}
+                    {results.skipped > 0 && (
+                      <div className="mb-10 p-6 bg-orange-500/5 border border-orange-500/20 rounded-[2rem] text-left">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Info className="h-5 w-5 text-orange-500" />
+                          <h4 className="text-xs font-black uppercase tracking-widest text-orange-600">Why were some leads skipped?</h4>
+                        </div>
+                        <ul className="space-y-2">
+                          <li className="text-[11px] text-muted-foreground font-medium flex gap-2">
+                            <span className="text-orange-500 font-bold">•</span>
+                            <span><strong>Duplicate Records:</strong> These leads already exist in your workspace with the same email or phone number.</span>
+                          </li>
+                          <li className="text-[11px] text-muted-foreground font-medium flex gap-2">
+                            <span className="text-orange-500 font-bold">•</span>
+                            <span><strong>Missing Info:</strong> Leads without both an email address and a phone number are automatically filtered out.</span>
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+
                     <div className="flex gap-4 max-w-md mx-auto">
-                      <Button variant="outline" onClick={() => setStep("upload")} className="flex-1 h-14 rounded-2xl font-black uppercase italic tracking-tighter border-border hover:bg-accent text-foreground">
+                      <Button variant="outline" onClick={() => setStep("upload")} className="flex-1 h-14 rounded-2xl font-black uppercase italic tracking-tighter border-border hover:bg-accent text-foreground cursor-pointer">
                         New Sync
                       </Button>
-                      <Button onClick={() => router.push(`/dashboard/${workspaceId}/leads`)} className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase italic tracking-tighter hover:bg-primary/90 shadow-xl shadow-primary/20">
+                      <Button onClick={() => router.push(`/dashboard/${workspaceId}/leads`)} className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase italic tracking-tighter hover:bg-primary/90 shadow-xl shadow-primary/20 cursor-pointer">
                         View Hub <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </div>
