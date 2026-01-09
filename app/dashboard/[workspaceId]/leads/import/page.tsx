@@ -9,7 +9,7 @@ import { useTheme } from "next-themes"
 import { 
   Upload, FileSpreadsheet, CheckCircle2, ArrowRight, X, 
   Loader2, Zap, ShieldCheck, Database, Sparkles,
-  Layout, Sun, Moon, Monitor, Bell, Calendar, FileText, Settings, Info,ChevronLeft
+  Layout, Sun, Moon, Monitor, Bell, Calendar, FileText, Settings, Info, ChevronLeft
 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -64,7 +64,6 @@ export default function LeadImportPage() {
           source: row.source || "CSV_Import",
         }))
 
-        // We no longer filter out leads without email/phone here to match backend
         setParsedLeads(formattedData)
         setStep("preview")
       }
@@ -75,9 +74,9 @@ export default function LeadImportPage() {
     setStep("importing")
     let p = 0
     const interval = setInterval(() => {
-      p += 5
-      if (p < 90) setProgress(p)
-    }, 100)
+      p += 2
+      if (p <= 100) setProgress(p)
+    }, 50)
 
     try {
       const response = await leadService.importLeads(workspaceId, parsedLeads)
@@ -88,7 +87,7 @@ export default function LeadImportPage() {
         skipped: response.skipped || 0,
         errors: response.errors?.length || 0
       })
-      setStep("complete")
+      setTimeout(() => setStep("complete"), 500)
       toast.success("Intelligence Sync Complete")
     } catch (error: any) {
       clearInterval(interval)
@@ -106,12 +105,12 @@ export default function LeadImportPage() {
       <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50 px-8 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Button 
-  variant="outline" 
-  onClick={() => router.push(`/dashboard/${workspaceId}/leads`)}
-  className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 px-6 font-black uppercase tracking-tighter text-[11px] h-9 cursor-pointer"
->
-  <ChevronLeft className="mr-2 h-4 w-4" /> Back to Leads
-</Button>
+            variant="outline" 
+            onClick={() => router.push(`/dashboard/${workspaceId}/leads`)}
+            className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 px-6 font-black uppercase tracking-tighter text-[11px] h-9 cursor-pointer"
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" /> Back to Leads
+          </Button>
           
           <div className="hidden lg:block h-6 w-[1px] bg-border mx-2" />
 
@@ -129,22 +128,25 @@ export default function LeadImportPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex bg-secondary/50 p-1 rounded-full border border-border relative w-[108px] h-9 items-center overflow-hidden">
-            <div
-              className={cn(
-                "absolute h-7 w-7 bg-background rounded-full shadow-md transition-all duration-300 ease-in-out border border-border/20",
-                theme === 'light' ? "translate-x-0" : theme === 'dark' ? "translate-x-[34px]" : "translate-x-[68px]"
-              )}
-            />
-            <button onClick={() => setTheme('light')} className={cn("z-10 flex-1 flex items-center justify-center cursor-pointer", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground")}>
-              <Sun className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => setTheme('dark')} className={cn("z-10 flex-1 flex items-center justify-center cursor-pointer", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground")}>
-              <Moon className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => setTheme('system')} className={cn("z-10 flex-1 flex items-center justify-center cursor-pointer", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground")}>
-              <Monitor className="h-3.5 w-3.5" />
-            </button>
+          {/* THEME SELECTOR - REVEAL ON HOVER */}
+          <div className="group relative flex items-center justify-center">
+            <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-border bg-background cursor-pointer z-20">
+              {theme === 'light' ? <Sun className="h-4 w-4 text-primary" /> : 
+               theme === 'dark' ? <Moon className="h-4 w-4 text-primary" /> : 
+               <Monitor className="h-4 w-4 text-primary" />}
+            </Button>
+
+            <div className="absolute top-0 right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:right-12 transition-all duration-300 ease-out flex bg-secondary/80 backdrop-blur-md p-1 rounded-full border border-border h-10 items-center gap-1 z-10">
+              <button onClick={() => setTheme('light')} className={cn("h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'light' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                <Sun className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => setTheme('dark')} className={cn("h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'dark' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                <Moon className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => setTheme('system')} className={cn("h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'system' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                <Monitor className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
 
           <DropdownMenu>
@@ -287,21 +289,69 @@ export default function LeadImportPage() {
               </motion.div>
             )}
 
-            {/* IMPORTING VIEW */}
+            {/* IMPORTING VIEW - HEAVY ANIMATION */}
             {step === "importing" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-24 text-center space-y-8">
-                <div className="relative inline-block">
-                  <div className="h-32 w-32 rounded-3xl bg-primary/10 flex items-center justify-center animate-pulse border border-primary/20">
-                    <Loader2 className="h-12 w-12 text-primary animate-spin" />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-24 text-center space-y-12 relative overflow-hidden">
+                {/* Falling Data Particles Animation */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(15)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ y: -50, x: Math.random() * 400 - 200, opacity: 0, scale: 0.5 }}
+                      animate={{ 
+                        y: 400, 
+                        opacity: [0, 1, 0],
+                        rotate: 360 
+                      }}
+                      transition={{ 
+                        duration: 1.5, 
+                        repeat: Infinity, 
+                        delay: Math.random() * 2,
+                        ease: "linear"
+                      }}
+                      className="absolute left-1/2"
+                    >
+                      <div className="h-3 w-3 bg-primary rounded-sm shadow-[0_0_10px_rgba(var(--primary),0.8)]" />
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="relative inline-block group">
+                   {/* Liquid Fill Card Effect */}
+                  <div className="h-40 w-32 rounded-3xl bg-card border-2 border-primary/20 relative overflow-hidden shadow-2xl">
+                    <motion.div 
+                      initial={{ height: "0%" }}
+                      animate={{ height: `${progress}%` }}
+                      className="absolute bottom-0 left-0 right-0 bg-primary/20 backdrop-blur-sm"
+                      transition={{ ease: "easeOut" }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Database className={cn("h-12 w-12 transition-colors duration-500", progress > 50 ? "text-primary-foreground" : "text-primary")} />
+                    </div>
+                    {/* Wavy Top Effect */}
+                    <motion.div 
+                      animate={{ x: [-100, 0] }}
+                      transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                      style={{ bottom: `${progress}%` }}
+                      className="absolute left-0 w-[200%] h-4 bg-primary/20 rounded-[100%] blur-sm"
+                    />
                   </div>
-                  <div className="absolute inset-0 border-2 border-primary border-t-transparent rounded-3xl animate-spin" />
                 </div>
-                <div className="space-y-3">
-                  <h2 className="text-3xl font-black tracking-tighter uppercase italic text-foreground">Uploading to Cloud Vault</h2>
-                  <p className="text-primary font-black uppercase text-[10px] tracking-[0.3em]">Processing Batch... {progress}%</p>
+
+                <div className="space-y-3 z-10 relative">
+                  <h2 className="text-3xl font-black tracking-tighter uppercase italic text-foreground">Injecting Intelligence</h2>
+                  <p className="text-primary font-black uppercase text-xs tracking-[0.4em]">{progress}% Secured</p>
                 </div>
-                <div className="max-w-md mx-auto px-10">
-                  <Progress value={progress} className="h-2" />
+
+                <div className="max-w-md mx-auto px-10 relative">
+                  <Progress value={progress} className="h-3 bg-primary/10" />
+                  <motion.div 
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                    className="absolute -right-2 -top-1"
+                  >
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </motion.div>
                 </div>
               </motion.div>
             )}
@@ -311,9 +361,13 @@ export default function LeadImportPage() {
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                 <Card className="border border-border shadow-2xl bg-card rounded-[3rem] overflow-hidden text-center">
                   <CardContent className="p-12">
-                    <div className="h-20 w-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-lg shadow-primary/10">
-                      <ShieldCheck className="h-10 w-10" />
-                    </div>
+                    <motion.div 
+                      initial={{ rotate: -20, scale: 0 }}
+                      animate={{ rotate: 0, scale: 1 }}
+                      className="h-24 w-24 bg-primary text-primary-foreground rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/40"
+                    >
+                      <ShieldCheck className="h-12 w-12" />
+                    </motion.div>
                     <h2 className="text-4xl font-black tracking-tighter uppercase italic mb-2 text-foreground">Sync Successful</h2>
                     <p className="text-muted-foreground font-bold mb-10 uppercase tracking-[0.2em] text-[10px] italic">Operational data has been secured in the workspace.</p>
                     
@@ -330,7 +384,6 @@ export default function LeadImportPage() {
                       ))}
                     </div>
 
-                    {/* UPDATED WHY DATA WAS SKIPPED SECTION */}
                     {results.skipped > 0 && (
                       <div className="mb-10 p-6 bg-orange-500/5 border border-orange-500/20 rounded-[2rem] text-left">
                         <div className="flex items-center gap-3 mb-3">
@@ -351,10 +404,10 @@ export default function LeadImportPage() {
                     )}
 
                     <div className="flex gap-4 max-w-md mx-auto">
-                      <Button variant="outline" onClick={() => setStep("upload")} className="flex-1 h-14 rounded-2xl font-black uppercase italic tracking-tighter border-border hover:bg-accent text-foreground cursor-pointer">
+                      <Button variant="outline" onClick={() => setStep("upload")} className="flex-1 h-14 rounded-2xl font-black uppercase italic tracking-tighter border-border hover:bg-accent text-foreground cursor-pointer transition-all hover:scale-105">
                         New Sync
                       </Button>
-                      <Button onClick={() => router.push(`/dashboard/${workspaceId}/leads`)} className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase italic tracking-tighter hover:bg-primary/90 shadow-xl shadow-primary/20 cursor-pointer">
+                      <Button onClick={() => router.push(`/dashboard/${workspaceId}/leads`)} className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase italic tracking-tighter hover:bg-primary/90 shadow-xl shadow-primary/20 cursor-pointer transition-all hover:scale-105">
                         View Hub <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </div>
