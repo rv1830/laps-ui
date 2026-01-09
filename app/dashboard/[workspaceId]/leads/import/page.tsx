@@ -1,380 +1,359 @@
 "use client"
 
-import type React from "react"
+import React, { useState, useCallback, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useParams, useRouter } from "next/navigation"
+import Papa from "papaparse"
+import { toast } from "sonner"
+import { useTheme } from "next-themes"
+import { 
+  Upload, FileSpreadsheet, CheckCircle2, ArrowRight, X, 
+  Loader2, Zap, ShieldCheck, Database, Sparkles,
+  Layout, Sun, Moon, Monitor, Bell, Calendar, FileText, Settings, ChevronLeft
+} from "lucide-react"
 
-import { useState } from "react"
-import { TopHeader } from "@/components/layout/top-header"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Upload, FileSpreadsheet, CheckCircle2, ArrowRight, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useParams } from "next/navigation"
 import { leadService } from "@/services/lead"
-import { toast } from "sonner"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
 
-type ImportStep = "upload" | "mapping" | "preview" | "importing" | "complete"
-
-const samplePreviewData = [
-  { name: "John Doe", email: "john@example.com", company: "Acme Inc", phone: "+1 555 123 4567" },
-  { name: "Jane Smith", email: "jane@startup.io", company: "StartupCo", phone: "+1 555 234 5678" },
-  { name: "Bob Wilson", email: "bob@enterprise.com", company: "Enterprise Ltd", phone: "+1 555 345 6789" },
-]
+type ImportStep = "upload" | "preview" | "importing" | "complete"
 
 export default function LeadImportPage() {
   const [step, setStep] = useState<ImportStep>("upload")
+  const [isDragging, setIsDragging] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme()
   const params = useParams()
+  const router = useRouter()
   const workspaceId = params.workspaceId as string
-  const [file, setFile] = useState<File | null>(null)
+  
+  const [parsedLeads, setParsedLeads] = useState<any[]>([])
   const [progress, setProgress] = useState(0)
-  const [duplicateHandling, setDuplicateHandling] = useState("skip")
+  const [results, setResults] = useState({ imported: 0, skipped: 0, errors: 0 })
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setStep("mapping")
+  useEffect(() => setMounted(true), [])
+
+  const onFileSelect = useCallback((selectedFile: File) => {
+    if (!selectedFile.name.endsWith('.csv')) {
+      toast.error("Please upload a valid CSV file");
+      return;
     }
-  }
+    
+    Papa.parse(selectedFile, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const formattedData = results.data.map((row: any) => ({
+          firstName: row.firstName || row.first_name || row.Name?.split(' ')[0] || row["First Name"] || "",
+          lastName: row.lastName || row.last_name || row.Name?.split(' ')[1] || row["Last Name"] || "",
+          email: row.email || row.Email || row["Email Address"] || "",
+          phone: row.phone || row.Phone || row["Phone Number"] || "",
+          company: row.company || row.Company || row.Organization || "",
+          source: row.source || "CSV_Import",
+        }))
 
+        const validLeads = formattedData.filter(l => l.email || l.phone)
+        if (validLeads.length === 0) {
+          toast.error("No valid leads found (Email or Phone required)")
+        } else {
+          setParsedLeads(validLeads)
+          setStep("preview")
+        }
+      }
+    })
+  }, [])
 
   const handleStartImport = async () => {
     setStep("importing")
-    try {
-      // leads array would come from your CSV parser logic (e.g., papaparse)
-      const dummyLeads = [{ name: "Imported Lead", email: "test@test.com" }];
-      await leadService.importLeads(workspaceId, dummyLeads);
+    let p = 0
+    const interval = setInterval(() => {
+      p += 5
+      if (p < 90) setProgress(p)
+    }, 100)
 
-      // Simulate progress UI
-      let p = 0;
-      const interval = setInterval(() => {
-        p += 20;
-        setProgress(p);
-        if (p >= 100) {
-          clearInterval(interval);
-          setStep("complete");
-        }
-      }, 200);
-    } catch (error) {
-      toast.error("Import failed");
-      setStep("upload");
+    try {
+      const response = await leadService.importLeads(workspaceId, parsedLeads)
+      clearInterval(interval)
+      setProgress(100)
+      setResults({
+        imported: response.imported || 0,
+        skipped: response.skipped || 0,
+        errors: response.errors?.length || 0
+      })
+      setStep("complete")
+      toast.success("Intelligence Sync Complete")
+    } catch (error: any) {
+      clearInterval(interval)
+      toast.error(error.response?.data?.error || "Import failed")
+      setStep("upload")
     }
   }
 
+  if (!mounted) return null
+
   return (
-    <div className="flex flex-col h-full">
-      <TopHeader title="Import Leads" subtitle="Import leads from a CSV file" />
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden font-sans transition-colors duration-300">
+      
+      {/* HEADER - DYNAMIC COLORS */}
+      <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50 px-8 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <Button 
+            variant="outline" 
+            onClick={() => router.push(`/dashboard/${workspaceId}/leads`)}
+            className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 px-6 font-black uppercase tracking-tighter text-[11px] h-9"
+          >
+            Back to Leads
+          </Button>
+          
+          <div className="hidden lg:block h-6 w-[1px] bg-border mx-2" />
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between mb-8">
-            {["Upload", "Map Fields", "Preview", "Import"].map((label, index) => {
-              const stepNames: ImportStep[] = ["upload", "mapping", "preview", "importing"]
-              const currentStepIndex = stepNames.indexOf(step)
-              const isComplete = index < currentStepIndex || step === "complete"
-              const isCurrent = index === currentStepIndex
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                <Database className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black tracking-tighter uppercase leading-none mb-1">Import Hub</h1>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-primary opacity-80">
+                Data Synchronization Engine
+              </p>
+            </div>
+          </div>
+        </div>
 
-              return (
-                <div key={label} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium",
-                        isComplete && "bg-success text-success-foreground",
-                        isCurrent && "bg-primary text-primary-foreground",
-                        !isComplete && !isCurrent && "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {isComplete ? <CheckCircle2 className="h-5 w-5" /> : index + 1}
-                    </div>
-                    <span className="text-xs mt-2 text-muted-foreground">{label}</span>
-                  </div>
-                  {index < 3 && <div className={cn("w-24 h-px mx-4", isComplete ? "bg-success" : "bg-border")} />}
-                </div>
-              )
-            })}
+        <div className="flex items-center gap-4">
+          {/* THEME SELECTOR - DARK MODE SUPPORTED */}
+          <div className="flex bg-secondary/50 p-1 rounded-full border border-border relative w-[108px] h-9 items-center overflow-hidden">
+            <div
+              className={cn(
+                "absolute h-7 w-7 bg-background rounded-full shadow-md transition-all duration-300 ease-in-out border border-border/20",
+                theme === 'light' ? "translate-x-0" : theme === 'dark' ? "translate-x-[34px]" : "translate-x-[68px]"
+              )}
+            />
+            <button onClick={() => setTheme('light')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground")}>
+              <Sun className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => setTheme('dark')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground")}>
+              <Moon className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => setTheme('system')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground")}>
+              <Monitor className="h-3.5 w-3.5" />
+            </button>
           </div>
 
-          {/* Upload Step */}
-          {step === "upload" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload CSV File</CardTitle>
-                <CardDescription>
-                  Upload a CSV file containing your leads. The file should have headers.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary/50 transition-colors">
-                  <input type="file" accept=".csv" onChange={handleFileChange} className="hidden" id="file-upload" />
+          {/* QUICK ACTIONS */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-10 w-10 rounded-full border-border bg-background p-0 hover:border-primary/50 group">
+                <Zap className="h-4 w-4 text-primary group-hover:fill-primary" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-border bg-popover text-popover-foreground backdrop-blur-xl">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-muted-foreground px-3 py-2">Quick Commands</DropdownMenuLabel>
+              <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer hover:bg-accent transition-colors">
+                <Calendar className="h-4 w-4 text-blue-500" />
+                <span className="font-bold text-sm">Schedule Sync</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer hover:bg-accent transition-colors">
+                <FileText className="h-4 w-4 text-orange-500" />
+                <span className="font-bold text-sm">Log History</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="gap-3 py-2 rounded-xl cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                <Settings className="h-4 w-4" />
+                <span className="font-bold text-xs uppercase">Engine Config</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* NOTIFICATION */}
+          <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-border relative bg-background hover:bg-secondary transition-colors">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <span className="absolute top-3 right-3.5 h-2 w-2 bg-primary rounded-full border-2 border-background animate-pulse" />
+          </Button>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gradient-to-b from-background to-secondary/20">
+        <div className="max-w-5xl mx-auto space-y-8">
+          
+          {/* STEP INDICATOR - DYNAMIC COLORS */}
+          <div className="flex items-center justify-center gap-4 mb-12">
+            {["Upload", "Analyze", "Sync"].map((label, idx) => (
+              <React.Fragment key={label}>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "h-10 w-10 rounded-2xl flex items-center justify-center font-bold transition-all duration-500 shadow-sm border",
+                    ["upload", "preview", "importing", "complete"].indexOf(step) >= idx
+                      ? "bg-primary text-primary-foreground border-primary rotate-3 shadow-primary/20"
+                      : "bg-muted text-muted-foreground border-border"
+                  )}>
+                    {idx + 1}
+                  </div>
+                  <span className={cn("text-xs font-black uppercase tracking-widest italic", 
+                    ["upload", "preview", "importing", "complete"].indexOf(step) >= idx ? "text-foreground" : "text-muted-foreground")}>
+                    {label}
+                  </span>
+                </div>
+                {idx < 2 && <div className="w-12 h-[2px] bg-border" />}
+              </React.Fragment>
+            ))}
+          </div>
+
+          <AnimatePresence mode="wait">
+            {/* UPLOAD VIEW */}
+            {step === "upload" && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+                className="group relative"
+              >
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-[80px] animate-pulse" />
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files[0]) onFileSelect(e.dataTransfer.files[0]); }}
+                  className={cn(
+                    "relative overflow-hidden border-2 border-dashed rounded-[2.5rem] p-24 text-center transition-all duration-500 bg-card/40 backdrop-blur-md",
+                    isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "border-border hover:border-primary/40"
+                  )}
+                >
+                  <input type="file" accept=".csv" onChange={(e) => e.target.files?.[0] && onFileSelect(e.target.files?.[0])} className="hidden" id="file-upload" />
                   <label htmlFor="file-upload" className="cursor-pointer">
-                    <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-lg font-medium text-foreground mb-2">
-                      Drop your CSV file here or click to upload
-                    </p>
-                    <p className="text-sm text-muted-foreground">Supports .csv files up to 10MB</p>
+                    <div className="h-20 w-20 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/20 group-hover:rotate-6 transition-transform">
+                      <Upload className="h-8 w-8 text-primary-foreground" />
+                    </div>
+                    <h3 className="text-3xl font-black tracking-tighter uppercase italic mb-3 text-foreground">Intelligence Dropzone</h3>
+                    <p className="text-muted-foreground font-medium mb-8 max-w-sm mx-auto italic">Drop CSV file to initialize mass lead synchronization into your secure vault.</p>
+                    <div className="flex items-center justify-center gap-4">
+                      <Badge variant="secondary" className="px-4 py-1 rounded-full font-bold uppercase text-[10px]">CSV Supported</Badge>
+                      <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-1 rounded-full font-bold uppercase text-[10px]">Auto-Map Active</Badge>
+                    </div>
                   </label>
                 </div>
+              </motion.div>
+            )}
 
-                <div className="mt-6 p-4 bg-muted rounded-lg">
-                  <h4 className="font-medium text-foreground mb-2">CSV Format Requirements</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>First row must contain column headers</li>
-                    <li>Required: At least email OR phone</li>
-                    <li>Recommended: name, company, source</li>
-                    <li>Dates should be in YYYY-MM-DD format</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Mapping Step */}
-          {step === "mapping" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Map CSV Columns</CardTitle>
-                <CardDescription>Match your CSV columns to lead fields</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                  <FileSpreadsheet className="h-8 w-8 text-primary" />
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">{file?.name}</p>
-                    <p className="text-sm text-muted-foreground">3 columns detected</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setFile(null)
-                      setStep("upload")
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 items-center">
-                    <div>
-                      <Label className="text-muted-foreground">CSV Column</Label>
-                      <p className="font-medium text-foreground">full_name</p>
+            {/* PREVIEW VIEW */}
+            {step === "preview" && (
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
+                <Card className="border-border shadow-2xl bg-card rounded-[2.5rem] overflow-hidden">
+                  <div className="p-8 border-b border-border flex items-center justify-between bg-muted/30">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <FileSpreadsheet className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground">Preview Dataset</h2>
+                        <p className="text-xs font-bold text-primary uppercase tracking-widest">{parsedLeads.length} Records Detected</p>
+                      </div>
                     </div>
-                    <div>
-                      <Label>Map to Field</Label>
-                      <Select defaultValue="name">
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="name">Name</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="phone">Phone</SelectItem>
-                          <SelectItem value="company">Company</SelectItem>
-                          <SelectItem value="skip">Skip this column</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <Button variant="ghost" className="rounded-full font-bold text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => setStep("upload")}>
+                      <X className="h-4 w-4 mr-2" /> Reset
+                    </Button>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4 items-center">
-                    <div>
-                      <Label className="text-muted-foreground">CSV Column</Label>
-                      <p className="font-medium text-foreground">email_address</p>
+                  <CardContent className="p-0 overflow-x-auto">
+                    <Table>
+                      <TableHeader className="bg-muted/50">
+                        <TableRow className="border-none hover:bg-transparent">
+                          <TableHead className="text-[10px] font-black uppercase tracking-widest py-5 pl-8 text-muted-foreground">Lead Name</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Organization</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase tracking-widest text-right pr-8 text-muted-foreground">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {parsedLeads.slice(0, 6).map((lead, i) => (
+                          <TableRow key={i} className="border-border/50 hover:bg-accent/50 transition-colors">
+                            <TableCell className="font-bold text-sm py-4 pl-8 text-foreground">{lead.firstName} {lead.lastName}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground font-medium">{lead.email}</TableCell>
+                            <TableCell className="text-xs font-bold text-muted-foreground uppercase">{lead.company || "N/A"}</TableCell>
+                            <TableCell className="text-right pr-8">
+                                <Badge className="bg-primary/10 text-primary border-none text-[9px] font-black italic">READY</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <div className="p-8 border-t border-border flex items-center justify-between bg-muted/20">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
+                        {parsedLeads.length > 6 ? `Batch Analysis: 6 of ${parsedLeads.length} records shown.` : "Analysis Complete."}
+                      </p>
+                      <Button onClick={handleStartImport} className="h-12 px-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase italic tracking-tighter transition-all shadow-lg shadow-primary/20">
+                        Synchronize Now <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
                     </div>
-                    <div>
-                      <Label>Map to Field</Label>
-                      <Select defaultValue="email">
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="name">Name</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="phone">Phone</SelectItem>
-                          <SelectItem value="company">Company</SelectItem>
-                          <SelectItem value="skip">Skip this column</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* IMPORTING VIEW */}
+            {step === "importing" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-24 text-center space-y-8">
+                <div className="relative inline-block">
+                  <div className="h-32 w-32 rounded-3xl bg-primary/10 flex items-center justify-center animate-pulse border border-primary/20">
+                    <Loader2 className="h-12 w-12 text-primary animate-spin" />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4 items-center">
-                    <div>
-                      <Label className="text-muted-foreground">CSV Column</Label>
-                      <p className="font-medium text-foreground">organization</p>
-                    </div>
-                    <div>
-                      <Label>Map to Field</Label>
-                      <Select defaultValue="company">
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="name">Name</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="phone">Phone</SelectItem>
-                          <SelectItem value="company">Company</SelectItem>
-                          <SelectItem value="skip">Skip this column</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  <div className="absolute inset-0 border-2 border-primary border-t-transparent rounded-3xl animate-spin" />
                 </div>
-
-                <div className="pt-4 border-t border-border">
-                  <Label>Duplicate Handling</Label>
-                  <Select value={duplicateHandling} onValueChange={setDuplicateHandling}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="skip">Skip duplicates</SelectItem>
-                      <SelectItem value="overwrite">Overwrite existing</SelectItem>
-                      <SelectItem value="create">Create new leads</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-3">
+                  <h2 className="text-3xl font-black tracking-tighter uppercase italic text-foreground">Uploading to Cloud Vault</h2>
+                  <p className="text-primary font-black uppercase text-[10px] tracking-[0.3em]">Processing Batch... {progress}%</p>
                 </div>
-
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setStep("upload")}>
-                    Back
-                  </Button>
-                  <Button onClick={() => setStep("preview")}>
-                    Continue to Preview <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Preview Step */}
-          {step === "preview" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Preview Import</CardTitle>
-                <CardDescription>Review the first 20 rows before importing</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                  <CheckCircle2 className="h-5 w-5 text-success" />
-                  <div>
-                    <p className="font-medium text-foreground">150 leads ready to import</p>
-                    <p className="text-sm text-muted-foreground">3 duplicates will be skipped</p>
-                  </div>
-                </div>
-
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {samplePreviewData.map((row, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{row.name}</TableCell>
-                        <TableCell>{row.email}</TableCell>
-                        <TableCell>{row.company}</TableCell>
-                        <TableCell>{row.phone}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-success/10 text-success">
-                            Valid
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setStep("mapping")}>
-                    Back
-                  </Button>
-                  <Button onClick={handleStartImport}>
-                    Start Import <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Importing Step */}
-          {step === "importing" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Importing Leads...</CardTitle>
-                <CardDescription>Please wait while we import your leads</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progress</span>
-                    <span>{progress}%</span>
-                  </div>
+                <div className="max-w-md mx-auto px-10">
                   <Progress value={progress} className="h-2" />
                 </div>
-                <p className="text-sm text-muted-foreground text-center">
-                  Importing {Math.floor(progress * 1.5)} of 150 leads...
-                </p>
-              </CardContent>
-            </Card>
-          )}
+              </motion.div>
+            )}
 
-          {/* Complete Step */}
-          {step === "complete" && (
-            <Card>
-              <CardHeader className="text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-4">
-                  <CheckCircle2 className="h-6 w-6 text-success" />
-                </div>
-                <CardTitle>Import Complete!</CardTitle>
-                <CardDescription>Your leads have been successfully imported</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-2xl font-semibold text-foreground">147</p>
-                    <p className="text-sm text-muted-foreground">Imported</p>
-                  </div>
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-2xl font-semibold text-foreground">3</p>
-                    <p className="text-sm text-muted-foreground">Duplicates Skipped</p>
-                  </div>
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-2xl font-semibold text-foreground">0</p>
-                    <p className="text-sm text-muted-foreground">Errors</p>
-                  </div>
-                </div>
+            {/* COMPLETE VIEW */}
+            {step === "complete" && (
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                <Card className="border border-border shadow-2xl bg-card rounded-[3rem] overflow-hidden text-center">
+                  <CardContent className="p-16">
+                    <div className="h-24 w-24 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-lg shadow-primary/10">
+                      <ShieldCheck className="h-12 w-12" />
+                    </div>
+                    <h2 className="text-4xl font-black tracking-tighter uppercase italic mb-4 text-foreground">Sync Successful</h2>
+                    <p className="text-muted-foreground font-bold mb-12 uppercase tracking-[0.2em] text-[10px] italic">Operational data has been secured in the workspace.</p>
+                    
+                    <div className="grid grid-cols-3 gap-6 mb-12">
+                      {[
+                        { label: "Imported", val: results.imported, color: "text-primary" },
+                        { label: "Skipped", val: results.skipped, color: "text-orange-500" },
+                        { label: "Errors", val: results.errors, color: "text-red-500" }
+                      ].map(res => (
+                        <div key={res.label} className="p-8 rounded-3xl bg-muted/50 border border-border shadow-inner">
+                          <p className={cn("text-3xl font-black tracking-tighter mb-1", res.color)}>{res.val}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{res.label}</p>
+                        </div>
+                      ))}
+                    </div>
 
-                <div className="flex justify-center gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setStep("upload")
-                      setFile(null)
-                      setProgress(0)
-                    }}
-                  >
-                    Import More
-                  </Button>
-                  <Button asChild>
-                    <a href="/leads">View Leads</a>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                    <div className="flex gap-4 max-w-md mx-auto">
+                      <Button variant="outline" onClick={() => setStep("upload")} className="flex-1 h-14 rounded-2xl font-black uppercase italic tracking-tighter border-border hover:bg-accent text-foreground">
+                        New Sync
+                      </Button>
+                      <Button onClick={() => router.push(`/dashboard/${workspaceId}/leads`)} className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase italic tracking-tighter hover:bg-primary/90 shadow-xl shadow-primary/20">
+                        View Hub <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
