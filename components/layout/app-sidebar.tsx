@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -142,6 +142,7 @@ export function AppSidebar() {
   const [userData, setUserData] = useState<any>(null)
   const [workspaces, setWorkspaces] = useState<any[]>([])
   const [hoveredWorkspace, setHoveredWorkspace] = useState<any>(null)
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -182,6 +183,17 @@ export function AppSidebar() {
     }
   };
 
+  const handleMouseEnter = (workspace: any) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+    setHoveredWorkspace(workspace)
+  }
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredWorkspace(null)
+    }, 250)
+  }
+
   return (
     <aside className="flex h-screen w-[280px] flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-2xl relative z-40">
       <div className="p-6">
@@ -202,7 +214,6 @@ export function AppSidebar() {
           </div>
         </div>
 
-        {/* Workspace Switcher with Floating Detail Logic */}
         <DropdownMenu onOpenChange={(open) => !open && setHoveredWorkspace(null)}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -228,39 +239,60 @@ export function AppSidebar() {
             sideOffset={15} 
             className="w-72 p-2 rounded-2xl border-sidebar-border shadow-2xl bg-popover/95 backdrop-blur-xl flex flex-col gap-1 overflow-visible"
           >
-            {/* THE FLOATING DETAIL PANEL */}
             {hoveredWorkspace && (
-              <div className="absolute left-[102%] top-0 w-80 bg-card/95 backdrop-blur-xl border border-sidebar-border shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-2xl p-6 animate-in fade-in slide-in-from-left-4 duration-300 z-50">
+              <div 
+                className="absolute left-[102%] top-0 w-80 bg-card border border-sidebar-border shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-2xl p-6 animate-in fade-in slide-in-from-left-4 duration-300 z-50"
+                onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current) }}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div className="flex items-center gap-4 mb-5">
-                   <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary  text-2xl border border-primary/20">
+                   <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-2xl border border-emerald-500/20 font-bold">
                       {hoveredWorkspace.name.charAt(0).toUpperCase()}
                    </div>
-                   <div className="overflow-hidden">
-                      <h4 className="text-base  truncate tracking-tight">{hoveredWorkspace.name}</h4>
-                      <Badge variant="outline" className="mt-1 h-5 bg-primary/5 text-primary border-primary/20 text-[9px] uppercase ">{hoveredWorkspace.role}</Badge>
+                   <div className="overflow-hidden text-left">
+                      <h4 className="text-lg font-bold tracking-tight mb-1">{hoveredWorkspace.name}</h4>
+                      <Badge variant="outline" className="mt-1 h-5 bg-emerald-500/10 text-emerald-500 border-none text-[9px] uppercase px-2 py-0.5 rounded-full font-bold">{hoveredWorkspace.role?.toUpperCase()}</Badge>
                    </div>
                 </div>
+
                 <div className="space-y-4 border-t border-sidebar-border/40 pt-5">
-                   <div className="flex items-center gap-3 text-xs font-bold">
-                      <Briefcase className="h-4 w-4 text-primary" />
-                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Industry</span>
+                   <div className="flex items-center justify-between text-[11px] font-bold tracking-wide">
+                      <div className="flex items-center gap-3 text-emerald-500">
+                         <Briefcase className="h-4 w-4" />
+                         <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Industry</span>
+                      </div>
                       <span className="truncate ml-auto">{hoveredWorkspace.industry || "Not Set"}</span>
                    </div>
-                   <div className="flex items-center gap-3 text-xs font-bold">
-                      <Globe className="h-4 w-4 text-primary" />
-                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Website</span>
-                      <span className="truncate ml-auto text-blue-500 font-medium italic">{hoveredWorkspace.website ? "Link Attached" : "None"}</span>
+
+                   <div className="flex items-center justify-between text-[11px] font-bold tracking-wide">
+                      <div className="flex items-center gap-3 text-emerald-500">
+                         <Globe className="h-4 w-4" />
+                         <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Website</span>
+                      </div>
+                      <span className="truncate ml-auto text-blue-500 font-medium italic">
+                        {hoveredWorkspace.website ? (
+                          <a href={hoveredWorkspace.website} target="_blank" rel="noopener noreferrer" className="hover:underline">Visit Site</a>
+                        ) : "None"}
+                      </span>
                    </div>
-                   <div className="flex items-center gap-3 text-xs font-bold">
-                      <ShieldCheck className="h-4 w-4 text-primary" />
-                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Access</span>
-                      <span className="ml-auto">Full Admin</span>
+
+                   <div className="flex items-center justify-between text-[11px] font-bold tracking-wide">
+                      <div className="flex items-center gap-3 text-emerald-500">
+                         <ShieldCheck className="h-4 w-4" />
+                         <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Access</span>
+                      </div>
+                      <span className="ml-auto">{hoveredWorkspace.role}</span>
                    </div>
-                   <div className="flex items-center gap-3 text-xs font-bold">
-                      <Clock className="h-4 w-4 text-primary" />
-                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Created</span>
-                      <span className="ml-auto opacity-70">{new Date(hoveredWorkspace.createdAt).toLocaleDateString()}</span>
-                   </div>
+
+                  <div className="flex items-center justify-between text-[11px] font-bold tracking-wide">
+  <div className="flex items-center gap-3 text-emerald-500">
+    <Globe className="h-4 w-4" /> {/* Icon change for better context */}
+    <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Timezone</span>
+  </div>
+  <span className="ml-auto opacity-70 text-zinc-200">
+    {hoveredWorkspace.timezone || "Not Set"}
+  </span>
+</div>
                 </div>
               </div>
             )}
@@ -271,8 +303,8 @@ export function AppSidebar() {
             {workspaces.map((workspace) => (
               <DropdownMenuItem
                 key={workspace.id}
-                onMouseEnter={() => setHoveredWorkspace(workspace)}
-                onMouseLeave={() => setHoveredWorkspace(null)}
+                onMouseEnter={() => handleMouseEnter(workspace)}
+                onMouseLeave={handleMouseLeave}
                 onClick={() => handleWorkspaceSwitch(workspace.id)}
                 className={cn(
                   "cursor-pointer p-3.5 rounded-xl gap-3 transition-all duration-200 group/item",
