@@ -13,16 +13,26 @@ interface LeadFiltersProps {
 }
 
 export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
-  const activeFilters = Object.entries(filters).filter(([_, value]) => value)
+  const activeFilters = Object.entries(filters).filter(([key, value]) => value && key !== 'page')
+
+  const handleFilterUpdate = (key: string, value: string) => {
+    const newFilters: Record<string, string> = { ...filters, page: "1" }; // Always reset to page 1 on filter change
+    if (value === "all" || !value) {
+      delete newFilters[key];
+    } else {
+      newFilters[key] = value;
+    }
+    onFiltersChange(newFilters);
+  }
 
   const clearFilter = (key: string) => {
-    const newFilters = { ...filters }
+    const newFilters: Record<string, string> = { ...filters, page: "1" }
     delete newFilters[key]
     onFiltersChange(newFilters)
   }
 
   const clearAllFilters = () => {
-    onFiltersChange({})
+    onFiltersChange({ page: "1" })
   }
 
   return (
@@ -35,12 +45,15 @@ export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
             placeholder="Search leads by name, email, or company..."
             className="pl-9"
             value={filters.search || ""}
-            onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
+            onChange={(e) => onFiltersChange({ ...filters, search: e.target.value, page: "1" })}
           />
         </div>
 
         {/* Stage Filter */}
-        <Select value={filters.stage || ""} onValueChange={(value) => onFiltersChange({ ...filters, stage: value })}>
+        <Select
+          value={filters.stageId || "all"}
+          onValueChange={(value) => handleFilterUpdate("stageId", value)}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="All Stages" />
           </SelectTrigger>
@@ -55,22 +68,30 @@ export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
         </Select>
 
         {/* Source Filter */}
-        <Select value={filters.source || ""} onValueChange={(value) => onFiltersChange({ ...filters, source: value })}>
+        <Select
+          value={filters.source || "all"}
+          onValueChange={(value) => handleFilterUpdate("source", value)}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="All Sources" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Sources</SelectItem>
-            <SelectItem value="website">Website Form</SelectItem>
-            <SelectItem value="linkedin">LinkedIn</SelectItem>
-            <SelectItem value="referral">Referral</SelectItem>
-            <SelectItem value="cold">Cold Outreach</SelectItem>
-            <SelectItem value="ads">Google Ads</SelectItem>
+            <SelectItem value="all" className="text-xs">All Sources</SelectItem>
+            <SelectItem value="manual" className="text-xs">Manual Entry</SelectItem>
+  <SelectItem value="website" className="text-xs">Website Form</SelectItem>
+  <SelectItem value="linkedin" className="text-xs">LinkedIn</SelectItem>
+  <SelectItem value="referral" className="text-xs">Referral</SelectItem>
+  <SelectItem value="cold_outreach" className="text-xs">Cold Outreach</SelectItem>
+  <SelectItem value="google_ads" className="text-xs">Google Ads</SelectItem>
+  <SelectItem value="others" className="text-xs">Others</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Mood Filter */}
-        <Select value={filters.mood || ""} onValueChange={(value) => onFiltersChange({ ...filters, mood: value })}>
+        <Select
+          value={filters.moodLabel || "all"}
+          onValueChange={(value) => handleFilterUpdate("moodLabel", value)}
+        >
           <SelectTrigger className="w-36">
             <SelectValue placeholder="All Moods" />
           </SelectTrigger>
@@ -95,7 +116,7 @@ export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
           <span className="text-xs text-muted-foreground">Active filters:</span>
           {activeFilters.map(([key, value]) => (
             <Badge key={key} variant="secondary" className="gap-1">
-              {key}: {value}
+              {key === 'stageId' ? 'Stage' : key === 'moodLabel' ? 'Mood' : key}: {value}
               <button onClick={() => clearFilter(key)} className="ml-1 hover:text-destructive">
                 <X className="h-3 w-3" />
               </button>

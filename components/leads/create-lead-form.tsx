@@ -203,12 +203,14 @@ export function CreateLeadForm({ workspaceId, onSuccess }: CreateLeadFormProps) 
                     <SelectValue placeholder="Select Source" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-border/50">
-                    <SelectItem value="manual" className="text-xs">Manual Entry</SelectItem>
-                    <SelectItem value="website" className="text-xs">Official Website</SelectItem>
-                    <SelectItem value="linkedin" className="text-xs">LinkedIn Prospect</SelectItem>
-                    <SelectItem value="referral" className="text-xs">Referral</SelectItem>
-                    <SelectItem value="ads" className="text-xs">Paid Ads</SelectItem>
-                  </SelectContent>
+  <SelectItem value="manual" className="text-xs">Manual Entry</SelectItem>
+  <SelectItem value="website" className="text-xs">Website Form</SelectItem>
+  <SelectItem value="linkedin" className="text-xs">LinkedIn</SelectItem>
+  <SelectItem value="referral" className="text-xs">Referral</SelectItem>
+  <SelectItem value="cold_outreach" className="text-xs">Cold Outreach</SelectItem>
+  <SelectItem value="google_ads" className="text-xs">Google Ads</SelectItem>
+  <SelectItem value="others" className="text-xs">Others</SelectItem>
+</SelectContent>
                 </Select>
               </div>
             </div>

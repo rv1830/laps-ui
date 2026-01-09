@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useParams } from "next/navigation"
 import { LeadTable } from "@/components/leads/lead-table"
 import { LeadFilters } from "@/components/leads/lead-filters"
@@ -40,33 +40,49 @@ export default function LeadsPage() {
   const [mounted, setMounted] = useState(false)
 
   const [selectedSegment, setSelectedSegment] = useState("all")
-  const [filters, setFilters] = useState<any>({ search: "", stage: "all" })
+  const [filters, setFilters] = useState<any>({ 
+    search: "", 
+    stageId: "all", 
+    source: "all", 
+    moodLabel: "all", 
+    page: "1" 
+  })
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [leadsData, setLeadsData] = useState<{ leads: any[], pagination: { total?: number } }>({ leads: [], pagination: {} })
+  const [leadsData, setLeadsData] = useState<{ leads: any[], pagination: any }>({ 
+    leads: [], 
+    pagination: {} 
+  })
   const [loading, setLoading] = useState(true)
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   useEffect(() => setMounted(true), [])
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await leadService.getLeads(workspaceId, {
-        search: filters.search,
-        stageId: filters.stage === "all" ? undefined : filters.stage
+      const queryParams = { ...filters }
+      
+      // Clean "all" values for backend
+      Object.keys(queryParams).forEach(key => {
+        if (queryParams[key] === "all") delete queryParams[key]
       })
+
+      const data = await leadService.getLeads(workspaceId, queryParams)
       setLeadsData(data)
     } catch (error) {
       console.error("Error fetching leads:", error)
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => {
-    fetchLeads()
   }, [workspaceId, filters])
+
+  // Debounced API call effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchLeads()
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [fetchLeads])
 
   const filteredLeads = useMemo(() => {
     const leads = leadsData.leads || []
@@ -130,7 +146,6 @@ export default function LeadsPage() {
             <Sparkles className="h-4 w-4" /> AI Assist
           </Button>
 
-          {/* THEME SLIDER */}
           <div className="flex bg-secondary/50 p-1 rounded-full border border-border/40 relative w-[108px] h-9 items-center overflow-hidden">
             <div
               className={cn(
@@ -167,7 +182,6 @@ export default function LeadsPage() {
             <Plus className="h-4 w-4 mr-1.5 stroke-[3px]" /> NEW LEAD
           </Button>
 
-          {/* QUICK ACTIONS */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-10 w-10 rounded-full border-border/50 bg-background/50 p-0 hover:border-primary/50 group">
@@ -226,7 +240,6 @@ export default function LeadsPage() {
             <span className="absolute top-3 right-3.5 h-2 w-2 bg-red-500 rounded-full border-2 border-background animate-pulse" />
           </Button>
 
-          {/* UPDATED DIALOG: Compact Size + Horizontal Form */}
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogContent className="sm:max-w-[950px] w-[95vw] rounded-[1.5rem] border-none shadow-2xl p-0 overflow-hidden bg-background">
               <div className="bg-primary/5 p-3 border-b border-primary/10 flex items-center px-8">
@@ -283,8 +296,38 @@ export default function LeadsPage() {
           </div>
 
           <div className="flex-1 overflow-hidden px-6 bg-background/20">
-            <LeadTable leads={filteredLeads} isLoading={loading} onRefresh={fetchLeads} workspaceId={workspaceId} />
+            <LeadTable 
+              leads={filteredLeads} 
+              isLoading={loading} 
+              onRefresh={fetchLeads} 
+              workspaceId={workspaceId} 
+            />
           </div>
+
+          {/* PAGINATION UI */}
+          {leadsData.pagination?.pages > 1 && (
+            <div className="px-8 py-4 border-t border-border/50 bg-background/50 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Page {filters.page} of {leadsData.pagination.pages}
+              </span>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase"
+                  disabled={filters.page === "1"}
+                  onClick={() => setFilters({...filters, page: (Number(filters.page) - 1).toString()})}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase"
+                  disabled={Number(filters.page) >= leadsData.pagination.pages}
+                  onClick={() => setFilters({...filters, page: (Number(filters.page) + 1).toString()})}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
