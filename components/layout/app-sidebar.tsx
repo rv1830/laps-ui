@@ -21,12 +21,14 @@ import {
   CheckSquare,
   Building2,
   PlusCircle,
-  Search,
   Sparkles,
-  Command,
   Bot,
   LogOut,
   User,
+  Globe,
+  Briefcase,
+  Clock,
+  ShieldCheck,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -40,7 +42,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { Workspace } from "@/lib/types"
 import { authService } from "@/services/auth"
 import { toast } from "sonner"
 
@@ -54,11 +55,7 @@ interface NavItem {
 }
 
 const getNavItems = (workspaceId: string): NavItem[] => [
-  {
-    title: "Dashboard",
-    href: `/dashboard/${workspaceId}`,
-    icon: LayoutDashboard,
-  },
+  { title: "Dashboard", href: `/dashboard/${workspaceId}`, icon: LayoutDashboard },
   {
     title: "Leads",
     href: `/dashboard/${workspaceId}/leads`,
@@ -79,12 +76,7 @@ const getNavItems = (workspaceId: string): NavItem[] => [
       { title: "Timeline", href: `/dashboard/${workspaceId}/pipeline/timeline` },
     ],
   },
-  {
-    title: "Tasks",
-    href: `/dashboard/${workspaceId}/tasks`,
-    icon: CheckSquare,
-    badge: 5,
-  },
+  { title: "Tasks", href: `/dashboard/${workspaceId}/tasks`, icon: CheckSquare, badge: 5 },
   {
     title: "Automation",
     href: `/dashboard/${workspaceId}/automation`,
@@ -123,16 +115,8 @@ const getNavItems = (workspaceId: string): NavItem[] => [
       { title: "Templates", href: `/dashboard/${workspaceId}/invoices/templates` },
     ],
   },
-  {
-    title: "Offers",
-    href: `/dashboard/${workspaceId}/offers`,
-    icon: Package,
-  },
-  {
-    title: "Analytics",
-    href: `/dashboard/${workspaceId}/analytics`,
-    icon: BarChart3,
-  },
+  { title: "Offers", href: `/dashboard/${workspaceId}/offers`, icon: Package },
+  { title: "Analytics", href: `/dashboard/${workspaceId}/analytics`, icon: BarChart3 },
 ]
 
 const getSettingsItems = (workspaceId: string): NavItem[] => [
@@ -157,8 +141,8 @@ export function AppSidebar() {
   const [openSections, setOpenSections] = useState<string[]>(["Leads", "Pipeline", "Automation"])
   const [userData, setUserData] = useState<any>(null)
   const [workspaces, setWorkspaces] = useState<any[]>([])
+  const [hoveredWorkspace, setHoveredWorkspace] = useState<any>(null)
 
-  // Fetch real data on mount
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -199,85 +183,121 @@ export function AppSidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-[260px] flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
-      <div className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-primary to-accent shadow-lg ai-glow-subtle">
-            <Zap className="h-5 w-5 text-primary-foreground" />
+    <aside className="flex h-screen w-[280px] flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-2xl relative z-40">
+      <div className="p-6">
+        <div className="flex items-center gap-3.5 mb-8 select-none">
+          <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent shadow-[0_0_20px_rgba(var(--primary),0.3)] ai-glow-subtle">
+            <Zap className="h-6 w-6 text-primary-foreground fill-primary-foreground" />
           </div>
           <div>
-            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+            <span className="text-xl pr-1 font-black tracking-tighter bg-gradient-to-r from-foreground to-foreground/90 bg-clip-text text-transparent italic">
               LAPS
             </span>
             <div className="flex items-center gap-1.5">
-              <div className="flex h-4 w-4 items-center justify-center rounded bg-accent/20">
+              <div className="flex h-4 w-4 items-center justify-center rounded-sm bg-accent/20">
                 <Bot className="h-2.5 w-2.5 text-accent" />
               </div>
-              <span className="text-[10px] text-accent font-semibold tracking-wide">AI SALES ENGINE</span>
+              <span className="text-[9px] text-accent  tracking-[0.1em] uppercase">AI SALES ENGINE</span>
             </div>
           </div>
         </div>
 
-        {/* Workspace Switcher */}
-        <DropdownMenu>
+        {/* Workspace Switcher with Floating Detail Logic */}
+        <DropdownMenu onOpenChange={(open) => !open && setHoveredWorkspace(null)}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-between h-auto py-2.5 px-3 bg-sidebar-accent/50 hover:bg-sidebar-accent border border-sidebar-border/50 text-sidebar-accent-foreground rounded-xl transition-all"
+              className="w-full justify-between h-auto py-4 px-4 bg-sidebar-accent/40 hover:bg-sidebar-accent border border-sidebar-border/60 text-sidebar-accent-foreground rounded-2xl transition-all duration-300 group cursor-pointer"
             >
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 text-primary">
-                  <Building2 className="h-4 w-4" />
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-primary/10 to-accent/10 text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+                  <Building2 className="h-5 w-5" />
                 </div>
                 <div className="text-left overflow-hidden">
-                  <p className="text-sm font-medium truncate">{currentWorkspace?.name || "Loading..."}</p>
-                  <p className="text-[10px] text-muted-foreground capitalize">{currentWorkspace?.role || "Owner"}</p>
+                  <p className="text-sm  truncate tracking-tight">{currentWorkspace?.name || "Loading..."}</p>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{currentWorkspace?.role || "Admin"}</p>
                 </div>
               </div>
-              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-64">
-            <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
-            <DropdownMenuSeparator />
+          
+          <DropdownMenuContent 
+            align="start" 
+            side="right" 
+            sideOffset={15} 
+            className="w-72 p-2 rounded-2xl border-sidebar-border shadow-2xl bg-popover/95 backdrop-blur-xl flex flex-col gap-1 overflow-visible"
+          >
+            {/* THE FLOATING DETAIL PANEL */}
+            {hoveredWorkspace && (
+              <div className="absolute left-[102%] top-0 w-80 bg-card/95 backdrop-blur-xl border border-sidebar-border shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-2xl p-6 animate-in fade-in slide-in-from-left-4 duration-300 z-50">
+                <div className="flex items-center gap-4 mb-5">
+                   <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary  text-2xl border border-primary/20">
+                      {hoveredWorkspace.name.charAt(0).toUpperCase()}
+                   </div>
+                   <div className="overflow-hidden">
+                      <h4 className="text-base  truncate tracking-tight">{hoveredWorkspace.name}</h4>
+                      <Badge variant="outline" className="mt-1 h-5 bg-primary/5 text-primary border-primary/20 text-[9px] uppercase ">{hoveredWorkspace.role}</Badge>
+                   </div>
+                </div>
+                <div className="space-y-4 border-t border-sidebar-border/40 pt-5">
+                   <div className="flex items-center gap-3 text-xs font-bold">
+                      <Briefcase className="h-4 w-4 text-primary" />
+                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Industry</span>
+                      <span className="truncate ml-auto">{hoveredWorkspace.industry || "Not Set"}</span>
+                   </div>
+                   <div className="flex items-center gap-3 text-xs font-bold">
+                      <Globe className="h-4 w-4 text-primary" />
+                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Website</span>
+                      <span className="truncate ml-auto text-blue-500 font-medium italic">{hoveredWorkspace.website ? "Link Attached" : "None"}</span>
+                   </div>
+                   <div className="flex items-center gap-3 text-xs font-bold">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Access</span>
+                      <span className="ml-auto">Full Admin</span>
+                   </div>
+                   <div className="flex items-center gap-3 text-xs font-bold">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <span className="text-muted-foreground uppercase tracking-widest text-[9px] w-20">Created</span>
+                      <span className="ml-auto opacity-70">{new Date(hoveredWorkspace.createdAt).toLocaleDateString()}</span>
+                   </div>
+                </div>
+              </div>
+            )}
+
+            <DropdownMenuLabel className="px-3 py-2 text-[10px]  text-muted-foreground uppercase tracking-[0.2em] opacity-70">Switch Workspace</DropdownMenuLabel>
+            <DropdownMenuSeparator className="mx-2 opacity-50" />
+            
             {workspaces.map((workspace) => (
               <DropdownMenuItem
                 key={workspace.id}
+                onMouseEnter={() => setHoveredWorkspace(workspace)}
+                onMouseLeave={() => setHoveredWorkspace(null)}
                 onClick={() => handleWorkspaceSwitch(workspace.id)}
-                className="cursor-pointer"
+                className={cn(
+                  "cursor-pointer p-3.5 rounded-xl gap-3 transition-all duration-200 group/item",
+                  workspace.id === workspaceId ? "bg-primary/10 text-primary" : "hover:bg-sidebar-accent"
+                )}
               >
-                <Building2 className="mr-2 h-4 w-4" />
-                <div className="flex-1 overflow-hidden">
-                  <p className={cn("font-medium truncate", workspace.id === workspaceId && "text-primary")}>
-                    {workspace.name}
-                  </p>
-                </div>
-                {workspace.id === workspaceId && <div className="h-2 w-2 rounded-full bg-primary ml-2" />}
+                <Building2 className={cn("h-4 w-4 transition-transform group-hover/item:scale-110", workspace.id === workspaceId ? "text-primary" : "text-muted-foreground")} />
+                <span className="flex-1 truncate font-bold text-sm tracking-tight">{workspace.name}</span>
+                {workspace.id === workspaceId && <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.8)]" />}
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <Link href="/create-workspace">
-              <DropdownMenuItem className="cursor-pointer">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create Workspace
+            
+            <DropdownMenuSeparator className="mx-2 opacity-50" />
+            <Link href="/create-workspace" className="w-full cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer p-3.5 rounded-xl hover:bg-primary/5 hover:text-primary transition-colors gap-3  text-sm">
+                <PlusCircle className="h-4 w-4" />
+                <span>Create Workspace</span>
               </DropdownMenuItem>
             </Link>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <div className="px-4 py-3">
-        <button className="flex w-full items-center gap-3 rounded-xl border border-sidebar-border/50 bg-sidebar-accent/30 px-3 py-2.5 text-sm text-muted-foreground hover:bg-sidebar-accent hover:border-primary/30 transition-all group">
-          <Search className="h-4 w-4 group-hover:text-primary transition-colors" />
-          <span className="flex-1 text-left">Search...</span>
-          <kbd className="flex items-center gap-0.5 rounded-md bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-medium border border-sidebar-border/50">
-            <Command className="h-3 w-3" />K
-          </kbd>
-        </button>
-      </div>
-
-      <nav className="flex-1 overflow-y-auto px-3 pb-4">
-        <div className="space-y-1">
+      <nav className="flex-1 overflow-y-auto px-4 pb-6 space-y-8 mt-4 custom-scrollbar">
+        <div className="space-y-1.5">
           {getNavItems(workspaceId).map((item) => (
             <NavItemComponent
               key={item.href}
@@ -289,11 +309,9 @@ export function AppSidebar() {
           ))}
         </div>
 
-        <div className="mt-6 pt-6 border-t border-sidebar-border/50">
-          <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-            Configuration
-          </p>
-          <div className="space-y-1">
+        <div className="pt-8 border-t border-sidebar-border/30">
+          <p className="px-4 mb-4 text-[10px]  text-muted-foreground uppercase tracking-[0.2em] opacity-60">System Config</p>
+          <div className="space-y-1.5">
             {getSettingsItems(workspaceId).map((item) => (
               <NavItemComponent
                 key={item.href}
@@ -307,40 +325,42 @@ export function AppSidebar() {
         </div>
       </nav>
 
-      {/* Profile & Logout Section */}
-      <div className="p-3 border-t border-sidebar-border/50">
+      <div className="p-4 bg-sidebar-accent/20 border-t border-sidebar-border/30 mt-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 h-auto py-2.5 px-2 hover:bg-sidebar-accent rounded-xl"
+              className="w-full justify-start gap-4 h-auto py-3.5 px-3 hover:bg-sidebar-accent rounded-2xl border border-transparent hover:border-sidebar-border/50 transition-all cursor-pointer group"
             >
               <div className="relative">
-                <Avatar className="h-9 w-9 border-2 border-primary/30">
+                <Avatar className="h-11 w-11 border-2 border-primary/20 group-hover:border-primary/50 transition-all">
                   <AvatarImage src={userData?.avatar} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold uppercase">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs  uppercase tracking-tighter">
                     {userData?.firstName?.charAt(0)}{userData?.lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-sidebar" />
+                <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-green-500 border-[3px] border-sidebar shadow-sm" />
               </div>
               <div className="text-left flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{userData?.firstName} {userData?.lastName}</p>
-                <p className="text-xs text-muted-foreground truncate text-[10px]">{userData?.email}</p>
+                <p className="text-sm  truncate group-hover:text-primary transition-colors">{userData?.firstName} {userData?.lastName}</p>
+                <p className="text-[10px] text-muted-foreground truncate font-bold opacity-70">{userData?.email}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <Link href={`/dashboard/${workspaceId}/settings/profile`}>
-              <DropdownMenuItem className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" /> Profile Details
+          <DropdownMenuContent align="end" side="top" sideOffset={12} className="w-64 p-2 rounded-2xl shadow-2xl border-sidebar-border">
+            <DropdownMenuLabel className="px-3 py-2 text-xs  text-muted-foreground uppercase opacity-70">My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator className="opacity-50" />
+            <Link href={`/dashboard/${workspaceId}/settings/profile`} className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer p-3.5 rounded-xl gap-3 font-bold text-sm">
+                <User className="h-4 w-4 text-primary" /> Profile Details
               </DropdownMenuItem>
             </Link>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
-              <LogOut className="mr-2 h-4 w-4" /> Log out
+            <DropdownMenuSeparator className="opacity-50" />
+            <DropdownMenuItem 
+              onClick={handleLogout} 
+              className="text-destructive cursor-pointer p-3.5 rounded-xl gap-3 hover:bg-destructive/10  text-sm"
+            >
+              <LogOut className="h-4 w-4" /> Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -349,77 +369,69 @@ export function AppSidebar() {
   )
 }
 
-function NavItemComponent({
-  item,
-  isActive,
-  isOpen,
-  onToggle,
-}: {
-  item: NavItem
-  isActive: (href: string) => boolean
-  isOpen: boolean
-  onToggle: () => void
-}) {
+function NavItemComponent({ item, isActive, isOpen, onToggle }: any) {
   const Icon = item.icon
   const hasChildren = item.children && item.children.length > 0
   const active = isActive(item.href)
 
-  if (hasChildren) {
-    return (
-      <Collapsible open={isOpen} onOpenChange={onToggle}>
-        <CollapsibleTrigger asChild>
+  return (
+    <div className="space-y-1">
+      {hasChildren ? (
+        <Collapsible open={isOpen} onOpenChange={onToggle}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-between h-12 px-4 hover:bg-sidebar-accent rounded-xl transition-all cursor-pointer group",
+                active && "bg-sidebar-accent/60 text-primary border border-primary/20 shadow-sm",
+              )}
+            >
+              <span className="flex items-center gap-4">
+                <Icon className={cn("h-5 w-5 transition-colors", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                <span className="text-sm  tracking-tight">{item.title}</span>
+              </span>
+              <div className="flex items-center gap-2">
+                {item.isAI && <Sparkles className="h-3 w-3 text-accent fill-accent animate-pulse" />}
+                {isOpen ? <ChevronDown className="h-4 w-4 opacity-50 transition-transform duration-300" /> : <ChevronRight className="h-4 w-4 opacity-50 transition-transform duration-300" />}
+              </div>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pl-12 mt-1 space-y-1 border-l-2 border-sidebar-border/30 ml-6 animate-in slide-in-from-top-1 duration-200">
+            {item.children.map((child: any) => (
+              <Link key={child.href} href={child.href} className="cursor-pointer">
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start h-10 px-4 text-[13px] font-bold rounded-xl transition-all cursor-pointer relative group/child",
+                    isActive(child.href) ? "text-primary bg-primary/5 shadow-inner" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {isActive(child.href) && <div className="absolute -left-[27px] w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.8)]" />}
+                  {child.title}
+                </Button>
+              </Link>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      ) : (
+        <Link href={item.href} className="cursor-pointer">
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-between h-10 px-3 hover:bg-sidebar-accent rounded-xl transition-all",
-              active && "bg-sidebar-accent text-primary border border-primary/20",
+              "w-full justify-start gap-4 h-12 px-4 hover:bg-sidebar-accent rounded-xl transition-all cursor-pointer group",
+              active && "bg-sidebar-accent/60 text-primary border border-primary/20 shadow-sm",
             )}
           >
-            <span className="flex items-center gap-3">
-              <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
-              <span className="text-sm font-medium">{item.title}</span>
-            </span>
-            <span className="flex items-center gap-2">
-              {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </span>
+            <Icon className={cn("h-5 w-5 transition-colors", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+            <span className="text-sm  tracking-tight">{item.title}</span>
+            {item.badge && (
+              <Badge className="ml-auto h-5 min-w-5 px-1.5 text-[9px]  bg-primary text-primary-foreground border-0 rounded-full shadow-lg">
+                {item.badge}
+              </Badge>
+            )}
           </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pl-9 mt-1 space-y-0.5">
-          {item.children?.map((child) => (
-            <Link key={child.href} href={child.href}>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start h-8 px-3 text-sm font-medium hover:bg-sidebar-accent rounded-lg",
-                  isActive(child.href) && "bg-sidebar-accent/50 text-primary",
-                )}
-              >
-                {child.title}
-              </Button>
-            </Link>
-          ))}
-        </CollapsibleContent>
-      </Collapsible>
-    )
-  }
-
-  return (
-    <Link href={item.href}>
-      <Button
-        variant="ghost"
-        className={cn(
-          "w-full justify-start gap-3 h-10 px-3 hover:bg-sidebar-accent rounded-xl transition-all",
-          active && "bg-sidebar-accent text-primary border border-primary/20",
-        )}
-      >
-        <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
-        <span className="text-sm font-medium">{item.title}</span>
-        {item.badge && (
-          <Badge className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold bg-primary/20 text-primary border-0 rounded-full">
-            {item.badge}
-          </Badge>
-        )}
-      </Button>
-    </Link>
+        </Link>
+      )}
+    </div>
   )
 }
