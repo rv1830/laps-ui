@@ -18,13 +18,14 @@ import {
   Sun, 
   Monitor,
   MoreHorizontal,
-  ChevronLeft,
+  ArrowLeft,
   Zap,
   Filter
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { useTheme } from "next-themes"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,20 +121,22 @@ export function PipelineBoard() {
 
   if (!mounted) return null
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-full bg-background">
-      <Loader2 className="animate-spin mr-2 text-primary" /> Initializing Board...
-    </div>
-  )
-
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
       
       {/* --- PREMIUM ENHANCED HEADER --- */}
       <header className="flex items-center justify-between px-6 py-3 border-b bg-card/50 backdrop-blur-md sticky top-0 z-50">
         
-        {/* Left Side: Title & Stats (Restored) */}
+        {/* Left Side: Back Arrow, Title & Stats */}
         <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full h-9 w-9 cursor-pointer" 
+            onClick={() => router.push(`/dashboard/${workspaceId}`)}
+          >
+            <ArrowLeft className="h-3 w-3 " />
+          </Button>
           <div className="bg-primary/10 p-2.5 rounded-xl shadow-sm border border-primary/20">
             <Users className="h-5 w-5 text-primary" />
           </div>
@@ -209,60 +212,77 @@ export function PipelineBoard() {
         </div>
       </header>
 
-      {/* --- BOARD COLUMNS --- */}
+      {/* --- BOARD CONTENT / SKELETON LOADER --- */}
       <div className="flex-1 overflow-x-auto p-6 flex gap-6 items-start relative custom-scrollbar bg-muted/20">
-        {stages.map((stage) => {
-          const stageLeads = leads.filter((lead) => lead.stageId === stage.id)
-
-          return (
-            <div
-              key={stage.id}
-              className="flex flex-col w-80 min-w-[340px] max-h-full group"
-              onDragOver={(e) => onDragOver(e, stage.id)}
-              onDrop={(e) => onDrop(e, stage.id)}
-            >
-              {/* Stage Header */}
-              <div className="flex items-center justify-between mb-4 px-1">
-                <div className="flex items-center gap-2.5">
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full ring-4 ring-background shadow-sm" 
-                    style={{ backgroundColor: stage.color }} 
-                  />
-                  <span className="font-bold text-sm tracking-tight">{stage.name}</span>
-                  <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-bold bg-background shadow-sm border-none">
-                    {stageLeads.length}
-                  </Badge>
-                </div>
-                <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7"><Plus className="h-3.5 w-3.5" /></Button>
-                </div>
+        {loading ? (
+          // CARD TYPE SKELETON LOADER
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex flex-col w-80 min-w-[340px] gap-4">
+              <div className="flex justify-between items-center px-1">
+                <Skeleton className="h-6 w-32 bg-muted/40" />
+                <Skeleton className="h-5 w-8 rounded-full bg-muted/40" />
               </div>
-
-              {/* Lead Cards Container */}
-              <div className={cn(
-                  "flex-1 rounded-2xl p-3 space-y-3 overflow-y-auto bg-card/40 backdrop-blur-[2px] min-h-[500px] border-2 border-dashed border-transparent transition-all duration-200 shadow-inner",
-                  dragOverStage === stage.id && "border-primary/40 bg-primary/5 scale-[1.01]"
-              )}>
-                {stageLeads.map((lead) => (
-                  <PipelineCard key={lead.id} lead={lead} workspaceId={workspaceId} />
-                ))}
-                
-                {/* Infinite Scroll Sentinel */}
-                {stage.id === stages[stages.length - 1].id && (
-                   <div ref={lastElementRef} className="h-20 w-full flex items-center justify-center">
-                      {loadingMore && (
-                        <div className="flex flex-col items-center gap-2">
-                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                          <span className="text-[10px] text-muted-foreground font-medium">Fetching leads...</span>
-                        </div>
-                      )}
-                   </div>
-                )}
+              <div className="space-y-3 rounded-2xl p-3 bg-card/40 border border-border/50">
+                <Skeleton className="h-32 w-full rounded-xl bg-muted/30" />
+                <Skeleton className="h-32 w-full rounded-xl bg-muted/30" />
+                <Skeleton className="h-32 w-full rounded-xl bg-muted/30" />
               </div>
             </div>
-          )
-        })}
+          ))
+        ) : (
+          stages.map((stage) => {
+            const stageLeads = leads.filter((lead) => lead.stageId === stage.id)
+
+            return (
+              <div
+                key={stage.id}
+                className="flex flex-col w-80 min-w-[340px] max-h-full group"
+                onDragOver={(e) => onDragOver(e, stage.id)}
+                onDrop={(e) => onDrop(e, stage.id)}
+              >
+                {/* Stage Header */}
+                <div className="flex items-center justify-between mb-4 px-1">
+                  <div className="flex items-center gap-2.5">
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full ring-4 ring-background shadow-sm" 
+                      style={{ backgroundColor: stage.color }} 
+                    />
+                    <span className="font-bold text-sm tracking-tight">{stage.name}</span>
+                    <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-bold bg-background shadow-sm border-none">
+                      {stageLeads.length}
+                    </Badge>
+                  </div>
+                  <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7"><Plus className="h-3.5 w-3.5" /></Button>
+                  </div>
+                </div>
+
+                {/* Lead Cards Container */}
+                <div className={cn(
+                    "flex-1 rounded-2xl p-3 space-y-3 overflow-y-auto bg-card/40 backdrop-blur-[2px] min-h-[500px] border-2 border-dashed border-transparent transition-all duration-200 shadow-inner",
+                    dragOverStage === stage.id && "border-primary/40 bg-primary/5 scale-[1.01]"
+                )}>
+                  {stageLeads.map((lead) => (
+                    <PipelineCard key={lead.id} lead={lead} workspaceId={workspaceId} />
+                  ))}
+                  
+                  {/* Infinite Scroll Sentinel */}
+                  {stage.id === stages[stages.length - 1].id && (
+                     <div ref={lastElementRef} className="h-20 w-full flex items-center justify-center">
+                        {loadingMore && (
+                          <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                            <span className="text-[10px] text-muted-foreground font-medium">Fetching leads...</span>
+                          </div>
+                        )}
+                     </div>
+                  )}
+                </div>
+              </div>
+            )
+          })
+        )}
       </div>
     </div>
   )
