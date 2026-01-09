@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, SlidersHorizontal, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { stageLabels } from "@/lib/mock-data"
 
 interface LeadFiltersProps {
   filters: Record<string, string>
@@ -16,7 +15,7 @@ export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
   const activeFilters = Object.entries(filters).filter(([key, value]) => value && key !== 'page')
 
   const handleFilterUpdate = (key: string, value: string) => {
-    const newFilters: Record<string, string> = { ...filters, page: "1" }; // Always reset to page 1 on filter change
+    const newFilters: Record<string, string> = { ...filters, page: "1" }; 
     if (value === "all" || !value) {
       delete newFilters[key];
     } else {
@@ -49,7 +48,7 @@ export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
           />
         </div>
 
-        {/* Stage Filter */}
+        {/* Stage Filter - Values strictly matched with WorkspaceController names */}
         <Select
           value={filters.stageId || "all"}
           onValueChange={(value) => handleFilterUpdate("stageId", value)}
@@ -59,11 +58,14 @@ export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Stages</SelectItem>
-            {Object.entries(stageLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
+            <SelectItem value="New Lead">New Lead</SelectItem>
+            <SelectItem value="Contacted">Contacted</SelectItem>
+            <SelectItem value="Replied">Replied</SelectItem>
+            <SelectItem value="Call Booked">Call Booked</SelectItem>
+            <SelectItem value="Presented">Presented</SelectItem>
+            <SelectItem value="Proposal Sent">Proposal Sent</SelectItem>
+            <SelectItem value="Won">Won</SelectItem>
+            <SelectItem value="Lost">Lost</SelectItem>
           </SelectContent>
         </Select>
 
@@ -78,12 +80,12 @@ export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
           <SelectContent>
             <SelectItem value="all" className="text-xs">All Sources</SelectItem>
             <SelectItem value="manual" className="text-xs">Manual Entry</SelectItem>
-  <SelectItem value="website" className="text-xs">Website Form</SelectItem>
-  <SelectItem value="linkedin" className="text-xs">LinkedIn</SelectItem>
-  <SelectItem value="referral" className="text-xs">Referral</SelectItem>
-  <SelectItem value="cold_outreach" className="text-xs">Cold Outreach</SelectItem>
-  <SelectItem value="google_ads" className="text-xs">Google Ads</SelectItem>
-  <SelectItem value="others" className="text-xs">Others</SelectItem>
+            <SelectItem value="website" className="text-xs">Website Form</SelectItem>
+            <SelectItem value="linkedin" className="text-xs">LinkedIn</SelectItem>
+            <SelectItem value="referral" className="text-xs">Referral</SelectItem>
+            <SelectItem value="cold_outreach" className="text-xs">Cold Outreach</SelectItem>
+            <SelectItem value="google_ads" className="text-xs">Google Ads</SelectItem>
+            <SelectItem value="others" className="text-xs">Others</SelectItem>
           </SelectContent>
         </Select>
 
@@ -104,13 +106,12 @@ export function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
           </SelectContent>
         </Select>
 
-        {/* Advanced Filters */}
         <Button variant="outline" size="icon">
           <SlidersHorizontal className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Active Filters */}
+      {/* Active Filters Display */}
       {activeFilters.length > 0 && (
         <div className="flex items-center gap-2 mt-3">
           <span className="text-xs text-muted-foreground">Active filters:</span>
