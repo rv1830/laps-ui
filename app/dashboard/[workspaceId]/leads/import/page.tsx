@@ -9,7 +9,7 @@ import { useTheme } from "next-themes"
 import { 
   Upload, FileSpreadsheet, CheckCircle2, ArrowRight, X, 
   Loader2, Zap, ShieldCheck, Database, Sparkles,
-  Layout, Sun, Moon, Monitor, Bell, Calendar, FileText, Settings, Info
+  Layout, Sun, Moon, Monitor, Bell, Calendar, FileText, Settings, Info,ChevronLeft
 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -64,13 +64,9 @@ export default function LeadImportPage() {
           source: row.source || "CSV_Import",
         }))
 
-        const validLeads = formattedData.filter(l => l.email || l.phone)
-        if (validLeads.length === 0) {
-          toast.error("No valid leads found (Email or Phone required)")
-        } else {
-          setParsedLeads(validLeads)
-          setStep("preview")
-        }
+        // We no longer filter out leads without email/phone here to match backend
+        setParsedLeads(formattedData)
+        setStep("preview")
       }
     })
   }, [])
@@ -110,12 +106,12 @@ export default function LeadImportPage() {
       <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50 px-8 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Button 
-            variant="outline" 
-            onClick={() => router.push(`/dashboard/${workspaceId}/leads`)}
-            className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 px-6 font-black uppercase tracking-tighter text-[11px] h-9 cursor-pointer"
-          >
-            Back to Leads
-          </Button>
+  variant="outline" 
+  onClick={() => router.push(`/dashboard/${workspaceId}/leads`)}
+  className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 px-6 font-black uppercase tracking-tighter text-[11px] h-9 cursor-pointer"
+>
+  <ChevronLeft className="mr-2 h-4 w-4" /> Back to Leads
+</Button>
           
           <div className="hidden lg:block h-6 w-[1px] bg-border mx-2" />
 
@@ -282,7 +278,7 @@ export default function LeadImportPage() {
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
                         {parsedLeads.length > 6 ? `Batch Analysis: 6 of ${parsedLeads.length} records shown.` : "Analysis Complete."}
                       </p>
-                      <Button onClick={handleStartImport} className="h-12 px-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase italic tracking-tighter transition-all shadow-lg shadow-primary/20">
+                      <Button onClick={handleStartImport} className="h-12 px-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase italic tracking-tighter transition-all shadow-lg shadow-primary/20 cursor-pointer">
                         Synchronize Now <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </div>
@@ -334,21 +330,21 @@ export default function LeadImportPage() {
                       ))}
                     </div>
 
-                    {/* WHY DATA WAS SKIPPED SECTION */}
+                    {/* UPDATED WHY DATA WAS SKIPPED SECTION */}
                     {results.skipped > 0 && (
                       <div className="mb-10 p-6 bg-orange-500/5 border border-orange-500/20 rounded-[2rem] text-left">
                         <div className="flex items-center gap-3 mb-3">
                           <Info className="h-5 w-5 text-orange-500" />
                           <h4 className="text-xs font-black uppercase tracking-widest text-orange-600">Why were some leads skipped?</h4>
                         </div>
-                        <ul className="space-y-2">
+                        <ul className="space-y-3">
                           <li className="text-[11px] text-muted-foreground font-medium flex gap-2">
                             <span className="text-orange-500 font-bold">•</span>
-                            <span><strong>Duplicate Records:</strong> These leads already exist in your workspace with the same email or phone number.</span>
+                            <span><strong>Duplicate Records:</strong> These leads already exist in your workspace with the same <strong>Email</strong> or <strong>Phone Number</strong>.</span>
                           </li>
                           <li className="text-[11px] text-muted-foreground font-medium flex gap-2">
                             <span className="text-orange-500 font-bold">•</span>
-                            <span><strong>Missing Info:</strong> Leads without both an email address and a phone number are automatically filtered out.</span>
+                            <span><strong>Note on Empty Data:</strong> Leads without an email or phone are still imported and labeled as <strong>"Unknown Lead"</strong> so you don't lose any data.</span>
                           </li>
                         </ul>
                       </div>
