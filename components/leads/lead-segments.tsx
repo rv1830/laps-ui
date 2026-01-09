@@ -2,15 +2,16 @@
 
 import { useMemo } from "react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, Flame, Clock, Calendar, Sparkles } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Users, Flame, Clock, Calendar, Sparkles, PanelLeftClose } from "lucide-react"
 import { isToday, subDays, parseISO } from "date-fns"
 
 export function LeadSegments({ 
   apiResponse, 
   selectedSegment, 
-  onSelectSegment 
+  onSelectSegment,
+  onClose // Prop to handle sidebar closing
 }: any) {
   
   const leads = useMemo(() => apiResponse?.leads || [], [apiResponse]);
@@ -42,15 +43,24 @@ export function LeadSegments({
   ]
 
   return (
-    <aside className="w-60 border-r border-border/50 bg-card/20 backdrop-blur-md flex flex-col h-full overflow-hidden select-none">
-      {/* Header Section */}
+    <aside className="w-64 border-r border-border/50 bg-card/20 backdrop-blur-md flex flex-col h-full overflow-hidden select-none">
+      {/* Header Section With Close Arrow */}
       <div className="flex items-center justify-between mt-6 mb-6 px-6">
         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">
           Smart Filters
         </h3>
+        {/* Sidebar Close Button */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={onClose}
+          className="h-7 w-7 rounded-lg hover:bg-primary/10 hover:text-primary text-muted-foreground transition-all duration-300"
+        >
+          <PanelLeftClose className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Navigation - No Horizontal Scroll */}
+      {/* Navigation */}
       <nav className="px-3 space-y-1 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         {segments.map((segment) => {
           const Icon = segment.icon
@@ -67,7 +77,6 @@ export function LeadSegments({
                   : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
               )}
             >
-              {/* Active Indicator Bar */}
               {isActive && (
                 <div className="absolute left-0 top-3 bottom-3 w-1 bg-primary rounded-r-full shadow-[2px_0_8px_rgba(var(--primary),0.3)]" />
               )}
@@ -100,10 +109,10 @@ export function LeadSegments({
         })}
       </nav>
 
-      {/* Insight Card - Fixed English & Improved Border */}
+      {/* Insight Card */}
       <div className="p-4 mt-auto">
         <div className="rounded-2xl bg-gradient-to-br from-orange-500/[0.07] via-orange-500/[0.02] to-transparent p-4 border border-orange-500/20 relative overflow-hidden group shadow-sm">
-          <div className="absolute -right-1 -top-1 opacity-[0.08] group-hover:rotate-12 group-hover:scale-110 transition-transform duration-500">
+          <div className="absolute -right-1 -top-1 opacity-[0.08] transition-transform duration-500">
             <Flame className="h-14 w-14 text-orange-500" />
           </div>
           
@@ -112,7 +121,7 @@ export function LeadSegments({
               <Sparkles className="h-3 w-3 fill-orange-500/20" /> Action Required
             </p>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              You have <span className="text-foreground font-bold">{segmentStats.hot} Hot Leads</span> ready for conversion. Follow up now to close the deal!
+              You have <span className="text-foreground font-bold">{segmentStats.hot} Hot Leads</span> ready for conversion. Follow up now!
             </p>
           </div>
         </div>

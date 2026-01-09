@@ -6,11 +6,11 @@ import { LeadTable } from "@/components/leads/lead-table"
 import { LeadFilters } from "@/components/leads/lead-filters"
 import { LeadSegments } from "@/components/leads/lead-segments"
 import { Button } from "@/components/ui/button"
-import { 
-  Plus, Upload, Download, Layers, 
+import {
+  Plus, Upload, Download, Layers,
   Moon, Sun, Monitor, ChevronRight, Sparkles,
-  Bell, Calendar, FileText, Zap, 
-  Mail, Phone, Target, Settings
+  Bell, Calendar, FileText, Zap,
+  Mail, Phone, Target, Settings, PanelLeftOpen
 } from "lucide-react"
 import Link from "next/link"
 import { leadService } from "@/services/lead"
@@ -43,8 +43,11 @@ export default function LeadsPage() {
   const [selectedSegment, setSelectedSegment] = useState("all")
   const [filters, setFilters] = useState<any>({ search: "", stage: "all" })
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [leadsData, setLeadsData] = useState({ leads: [], pagination: {} })
+  const [leadsData, setLeadsData] = useState<{ leads: any[], pagination: { total?: number } }>({ leads: [], pagination: {} })
   const [loading, setLoading] = useState(true)
+
+  // Sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   useEffect(() => setMounted(true), [])
 
@@ -90,14 +93,26 @@ export default function LeadsPage() {
 
   return (
     <div className="flex flex-col h-screen bg-background transition-colors duration-300">
-      
+
       {/* --- PREMIUM TOP HEADER --- */}
       <header className="h-20 border-b border-border/50 bg-background/80 backdrop-blur-md sticky top-0 z-40 px-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
+          {/* Sidebar Toggle (Visible only when sidebar is closed) */}
+          {!isSidebarOpen && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSidebarOpen(true)}
+              className="mr-2 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <PanelLeftOpen className="h-5 w-5" />
+            </Button>
+          )}
+
           <div className="hidden lg:flex items-center gap-2 text-sm font-medium text-muted-foreground">
-             <span>Workspace</span>
-             <ChevronRight className="h-4 w-4 opacity-50" />
-             <span className="text-foreground font-bold font-heading uppercase tracking-tighter">Leads</span>
+            <span>Workspace</span>
+            <ChevronRight className="h-4 w-4 opacity-50" />
+            <span className="text-foreground font-bold font-heading uppercase tracking-tighter">Leads</span>
           </div>
           <div className="hidden lg:block h-6 w-[1px] bg-border/60 mx-2" />
           <div className="flex items-center gap-3">
@@ -118,32 +133,32 @@ export default function LeadsPage() {
             <Sparkles className="h-4 w-4" /> AI Assist
           </Button>
 
-          {/* --- ULTRA INTERACTIVE THEME SLIDER --- */}
+          {/* THEME SLIDER */}
           <div className="flex bg-secondary/50 p-1 rounded-full border border-border/40 relative w-[108px] h-9 items-center overflow-hidden">
-             <div 
-               className={cn(
-                 "absolute h-7 w-7 bg-background rounded-full shadow-md transition-all duration-300 ease-in-out border border-border/20",
-                 theme === 'light' ? "translate-x-0" : theme === 'dark' ? "translate-x-[34px]" : "translate-x-[68px]"
-               )}
-             />
-             <button 
-               onClick={() => setTheme('light')} 
-               className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
-             >
-               <Sun className="h-3.5 w-3.5" />
-             </button>
-             <button 
-               onClick={() => setTheme('dark')} 
-               className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
-             >
-               <Moon className="h-3.5 w-3.5" />
-             </button>
-             <button 
-               onClick={() => setTheme('system')} 
-               className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
-             >
-               <Monitor className="h-3.5 w-3.5" />
-             </button>
+            <div
+              className={cn(
+                "absolute h-7 w-7 bg-background rounded-full shadow-md transition-all duration-300 ease-in-out border border-border/20",
+                theme === 'light' ? "translate-x-0" : theme === 'dark' ? "translate-x-[34px]" : "translate-x-[68px]"
+              )}
+            />
+            <button
+              onClick={() => setTheme('light')}
+              className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
+            >
+              <Sun className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
+            >
+              <Moon className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setTheme('system')}
+              className={cn("z-10 flex-1 flex items-center justify-center transition-colors", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground")}
+            >
+              <Monitor className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           <div className="hidden md:flex items-center gap-1 bg-secondary/30 p-1 rounded-full border border-border/40">
@@ -157,14 +172,14 @@ export default function LeadsPage() {
             </Link>
           </div>
 
-          <Button 
+          <Button
             onClick={() => setCreateDialogOpen(true)}
             className="h-10 px-6 rounded-full bg-primary hover:bg-primary/90 text-white font-black shadow-xl shadow-primary/20 active:scale-95 transition-all"
           >
             <Plus className="h-4 w-4 mr-1.5 stroke-[3px]" /> NEW LEAD
           </Button>
 
-          {/* --- EXTENDED QUICK ACTIONS (5 OPTIONS) --- */}
+          {/* QUICK ACTIONS */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-10 w-10 rounded-full border-border/50 bg-background/50 flex items-center justify-center p-0 hover:border-primary/50 transition-colors group">
@@ -173,7 +188,6 @@ export default function LeadsPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-border/50 backdrop-blur-xl">
               <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-muted-foreground px-3 py-2">Quick Commands</DropdownMenuLabel>
-              
               <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer hover:bg-blue-500/5 transition-colors">
                 <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600">
                   <Calendar className="h-4 w-4" />
@@ -183,7 +197,6 @@ export default function LeadsPage() {
                   <span className="text-[10px] text-muted-foreground">Sync with Google Calendar</span>
                 </div>
               </DropdownMenuItem>
-
               <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer hover:bg-orange-500/5 transition-colors">
                 <div className="h-9 w-9 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-600">
                   <FileText className="h-4 w-4" />
@@ -193,7 +206,6 @@ export default function LeadsPage() {
                   <span className="text-[10px] text-muted-foreground">Assign follow-up work</span>
                 </div>
               </DropdownMenuItem>
-
               <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer hover:bg-green-500/5 transition-colors">
                 <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center text-green-600">
                   <Mail className="h-4 w-4" />
@@ -213,9 +225,7 @@ export default function LeadsPage() {
                   <span className="text-[10px] text-muted-foreground">Automated sequence</span>
                 </div>
               </DropdownMenuItem>
-
               <DropdownMenuSeparator className="my-2" />
-              
               <DropdownMenuItem className="gap-3 py-2 rounded-xl cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
                 <Settings className="h-4 w-4 ml-2.5" />
                 <span className="font-bold text-xs uppercase tracking-tight">Pipeline Settings</span>
@@ -230,10 +240,9 @@ export default function LeadsPage() {
 
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
-              <div className="bg-primary/5 p-8 border-b border-primary/10">
+              <div className="bg-primary/5 p-8 border-b border-primary/10 text-center">
                 <DialogHeader>
-                  <DialogTitle className="text-3xl font-black tracking-tighter uppercase">Create Lead</DialogTitle>
-                  <DialogDescription className="text-muted-foreground font-medium">Add a high-potential lead to your database.</DialogDescription>
+                  <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic text-primary">Create Lead</DialogTitle>
                 </DialogHeader>
               </div>
               <div className="p-8 bg-background">
@@ -252,27 +261,35 @@ export default function LeadsPage() {
 
       {/* --- CONTENT AREA --- */}
       <main className="flex flex-1 overflow-hidden p-6 gap-6">
-        <div className="w-64 flex flex-col pr-4 overflow-y-auto">
-          <LeadSegments 
-            apiResponse={leadsData} 
-            selectedSegment={selectedSegment} 
-            onSelectSegment={setSelectedSegment} 
+        {/* SIDEBAR WRAPPER */}
+        <div
+          className={cn(
+            "transition-all duration-500 ease-in-out flex overflow-hidden",
+            isSidebarOpen ? "w-64 opacity-100 mr-0" : "w-0 opacity-0 -mr-6 pointer-events-none"
+          )}
+        >
+          <LeadSegments
+            apiResponse={leadsData}
+            selectedSegment={selectedSegment}
+            onSelectSegment={setSelectedSegment}
+            onClose={() => setIsSidebarOpen(false)} // Pass close function
           />
         </div>
-        
-        <div className="flex-1 flex flex-col overflow-hidden bg-card border border-border/80 rounded-[2rem] shadow-sm relative">
+
+        {/* Table Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-card border border-border/80 rounded-[2.5rem] shadow-sm relative transition-all duration-500">
           <div className="px-8 py-5 border-b border-border/50 bg-background/50 backdrop-blur-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
               <h2 className="text-xs font-black uppercase tracking-widest text-foreground">Lead Intelligence</h2>
             </div>
             <div className="flex items-center gap-2">
-               <span className="text-[10px] font-black bg-primary/10 px-3 py-1.5 rounded-full text-primary uppercase tracking-tighter">
-                 Segment: {selectedSegment.replace('_', ' ')}
-               </span>
+              <span className="text-[10px] font-black bg-primary/10 px-3 py-1.5 rounded-full text-primary uppercase tracking-tighter">
+                Segment: {selectedSegment.replace('_', ' ')}
+              </span>
             </div>
           </div>
-          
+
           <div className="p-6 bg-background/30">
             <LeadFilters filters={filters} onFiltersChange={setFilters} />
           </div>
