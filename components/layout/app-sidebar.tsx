@@ -29,6 +29,7 @@ import {
   Briefcase,
   Clock,
   ShieldCheck,
+  Link2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -66,6 +67,7 @@ const getNavItems = (workspaceId: string): NavItem[] => [
       { title: "All Leads", href: `/dashboard/${workspaceId}/leads` },
       { title: "Import", href: `/dashboard/${workspaceId}/leads/import` },
       { title: "Capture Sources", href: `/dashboard/${workspaceId}/leads/capture` },
+      { title: "Integrations", href: `/dashboard/${workspaceId}/integration` },
     ],
   },
   {
