@@ -20,7 +20,11 @@ import {
   MoreHorizontal,
   ArrowLeft,
   Zap,
-  Filter
+  Filter,
+  X,
+  Trash2,
+  Edit2,
+  AlertCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
@@ -49,6 +53,12 @@ export function PipelineBoard() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [dragOverStage, setDragOverStage] = useState<string | null>(null)
+
+  // --- NEW CARD STATES (NO ALERTS) ---
+  const [showCard, setShowCard] = useState<'create' | 'edit' | 'delete' | null>(null)
+  const [targetStage, setTargetStage] = useState<any>(null)
+  const [formName, setFormName] = useState("")
+  const [formColor, setFormColor] = useState("#3b82f6")
   
   const observer = useRef<IntersectionObserver | null>(null)
 
@@ -119,10 +129,34 @@ export function PipelineBoard() {
     }
   }
 
+  // --- REFRESH ACTION ---
+  const handleRefresh = async () => {
+    setLoading(true); // START LOADER IMMEDIATELY
+    const stagesData = await pipelineService.getStages(workspaceId)
+    setStages(stagesData)
+    await loadLeads(1, true)
+  }
+
+  // --- CARD ACTIONS ---
+  const executeAction = async () => {
+    const type = showCard;
+    setShowCard(null);
+    setLoading(true); // TRIGGER SKELETON IMMEDIATELY
+    try {
+      if (type === 'create') await pipelineService.createStage(workspaceId, { name: formName, color: formColor });
+      if (type === 'edit') await pipelineService.updateStage(workspaceId, targetStage.id, { name: formName, color: formColor });
+      if (type === 'delete') await pipelineService.deleteStage(workspaceId, targetStage.id);
+      await handleRefresh();
+    } catch (e) {
+      console.error(e);
+      setLoading(false);
+    }
+  }
+
   if (!mounted) return null
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-background">
+    <div className="flex flex-col h-full overflow-hidden bg-background relative">
       
       {/* --- PREMIUM ENHANCED HEADER --- */}
       <header className="flex items-center justify-between px-6 py-3 border-b bg-card/50 backdrop-blur-md sticky top-0 z-50">
@@ -204,10 +238,14 @@ export function PipelineBoard() {
             <span className="absolute top-2 right-2.5 h-2 w-2 bg-destructive rounded-full border-2 border-background" />
           </Button>
 
-          {/* Quick Add Button */}
-          <Button size="sm" className="gap-2 shadow-lg shadow-primary/20 px-4 transition-all active:scale-95 font-bold uppercase tracking-tighter italic text-[11px]">
+          {/* Quick Add Button -> Map to ADD STAGE */}
+          <Button 
+            onClick={() => { setFormName(""); setFormColor("#3b82f6"); setShowCard('create'); }}
+            size="sm" 
+            className="gap-2 shadow-lg shadow-primary/20 px-4 transition-all active:scale-95 font-bold uppercase tracking-tighter italic text-[11px] cursor-pointer"
+          >
             <Plus className="h-4 w-4 stroke-[3px]" />
-            Quick Add
+            Add Stage
           </Button>
         </div>
       </header>
@@ -253,7 +291,19 @@ export function PipelineBoard() {
                     </Badge>
                   </div>
                   <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 cursor-pointer"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => { setTargetStage(stage); setFormName(stage.name); setFormColor(stage.color); setShowCard('edit'); }}>
+                          <Edit2 className="h-3.5 w-3.5 mr-2 cursor-pointer" /> Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive font-bold cursor-pointer" onClick={() => { setTargetStage(stage); setShowCard('delete'); }}>
+                          <Trash2 className="h-3.5 w-3.5 mr-2 cursor-pointer" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button variant="ghost" size="icon" className="h-7 w-7"><Plus className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
@@ -284,6 +334,60 @@ export function PipelineBoard() {
           })
         )}
       </div>
+
+      {/* --- OVERLAY CARD COMPONENTS (NO ALERTS) --- */}
+      {showCard && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4">
+          <div className="bg-card w-full max-w-sm rounded-[2rem] shadow-2xl border border-border p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-black tracking-tight uppercase italic">
+                {showCard === 'create' ? "New Stage" : showCard === 'edit' ? "Edit Stage" : "Delete Stage"}
+              </h3>
+              <button onClick={() => setShowCard(null)} className="p-2 hover:bg-muted rounded-full transition-colors"><X className="h-4 w-4"/></button>
+            </div>
+
+            {showCard !== 'delete' ? (
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Stage Name</label>
+                  <Input 
+                    value={formName} 
+                    onChange={(e) => setFormName(e.target.value)} 
+                    className="bg-muted/50 border-none h-12 rounded-2xl font-bold focus-visible:ring-1 focus-visible:ring-primary/30"
+                    placeholder="E.g. In Progress"
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/50">
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Tag Color</span>
+                  <input 
+                    type="color" 
+                    value={formColor} 
+                    onChange={(e) => setFormColor(e.target.value)}
+                    className="w-8 h-8 rounded-full border-none bg-transparent cursor-pointer" 
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 bg-destructive/10 rounded-3xl border border-destructive/20 flex gap-4 items-start mb-6">
+                <AlertCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
+                <p className="text-sm font-bold text-destructive leading-tight">
+                  Warning: Deleting this stage will erase all associated leads permanently.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-8 flex gap-3">
+              <Button variant="ghost" className="flex-1 rounded-2xl font-bold h-12 cursor-pointer" onClick={() => setShowCard(null)}>Cancel</Button>
+              <Button 
+                className={cn("flex-1 rounded-2xl font-bold h-12 cursor-pointer", showCard === 'delete' && "bg-destructive hover:bg-destructive/90")}
+                onClick={executeAction}
+              >
+                {showCard === 'delete' ? "Delete All" : "Save Stage"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

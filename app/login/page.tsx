@@ -139,7 +139,7 @@ export default function LoginPage() {
             </div>
 
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
+              <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all cursor-pointer">
                 {loading ? "Entering..." : "Enter Dashboard"} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </motion.div>
