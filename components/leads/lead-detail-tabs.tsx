@@ -13,7 +13,8 @@ import {
   CalendarIcon,
   AlignLeft,
   User,
-  CheckCircle
+  CheckCircle,
+  Clock
 } from "lucide-react"
 
 // UI Components
@@ -30,13 +31,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-
-
-
-interface LeadDetailTabsProps {
-  activities: any[] // ya jo bhi aapka Activity type hai
-  tasks: any[]      // <--- Ye line miss ho rahi hai, ise add karo
-}
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 export function LeadDetailTabs({ activities: initialActivities }: { activities: any[] }) {
   const params = useParams()
   const router = useRouter()
@@ -50,7 +55,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
   const [loading, setLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(false)
 
-  // 1. Fetching Tasks from specific Tasks API
+  // 1. Fetching Tasks
   const fetchTasks = useCallback(async () => {
     if (!workspaceId || !leadId || leadId === 'undefined') return
     try {
@@ -61,7 +66,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
     }
   }, [workspaceId, leadId])
 
-  // 2. Fetching Lead for other tabs
+  // 2. Fetching Lead Data
   const fetchLeadData = useCallback(async () => {
     if (!workspaceId || !leadId || leadId === 'undefined') return
     setIsFetching(true)
@@ -69,7 +74,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
       const res = await api.get(`/leads/workspaces/${workspaceId}/${leadId}`)
       setLeadData(res.data)
     } catch (err) {
-      toast.error("Failed to fetch data")
+      toast.error("Failed to fetch lead details")
     } finally {
       setIsFetching(false)
     }
@@ -80,6 +85,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
     fetchTasks()
   }, [fetchLeadData, fetchTasks])
 
+  // Actions Handler
   const handleAction = async (action: 'status' | 'update' | 'delete', taskData?: any) => {
     setLoading(true)
     try {
@@ -96,14 +102,12 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
         setEditingTask(null)
       } 
       else if (action === 'delete') {
-        if (!confirm("Delete this task?")) return
         await taskService.deleteTask(workspaceId, taskId)
         toast.success("Task deleted")
         setEditingTask(null)
       }
       
       await fetchTasks()
-      await fetchLeadData()
       router.refresh()
     } catch (err) {
       toast.error("Operation failed")
@@ -132,29 +136,41 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
 
         <TabsContent value="tasks" className="mt-4 space-y-3">
           {tasks.map((task: any) => (
-            <div key={task.id} className="group relative flex flex-col gap-3 p-4 rounded-xl border bg-card hover:border-primary/40 transition-all shadow-sm">
+            <div 
+              key={task.id} 
+              className={cn(
+                "group relative flex flex-col gap-3 p-4 rounded-xl border transition-all shadow-sm",
+                task.status === "completed" ? "bg-muted/40 opacity-80" : "bg-card hover:border-primary/40"
+              )}
+            >
               <div className="flex items-start gap-4">
-                {/* Status Toggle Button */}
-                <button onClick={() => handleAction('status', task)} disabled={loading} className="mt-1">
+                {/* Status Toggle Button with Pointer Cursor */}
+                <button 
+                  onClick={() => handleAction('status', task)} 
+                  disabled={loading} 
+                  className="mt-1 transition-transform active:scale-90 cursor-pointer disabled:cursor-not-allowed"
+                  title={task.status === "completed" ? "Mark as Pending" : "Mark as Completed"}
+                >
                   {task.status === "completed" ? (
                     <CheckCircle2 className="h-5 w-5 text-green-500 fill-green-500/10" />
                   ) : (
-                    <Circle className="h-5 w-5 text-muted-foreground" />
+                    <Circle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
                   )}
                 </button>
 
                 <div className="flex-1 space-y-2">
-                  {/* Title & Type Badge */}
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">
                       {task.type}
                     </span>
-                    <p className={`text-sm font-bold leading-none ${task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                    <p className={cn(
+                      "text-sm font-bold leading-none",
+                      task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"
+                    )}>
                       {task.title}
                     </p>
                   </div>
 
-                  {/* Description */}
                   {task.description && (
                     <div className="flex items-start gap-2 text-muted-foreground opacity-80">
                       <AlignLeft className="h-3 w-3 mt-1 shrink-0" />
@@ -162,14 +178,14 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                     </div>
                   )}
 
-                  {/* Metadata Row: Priority, Due Date, Assignee */}
+                  {/* Metadata Row */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
                     <div className="flex items-center gap-1.5">
                       <div className={cn(
                         "w-2 h-2 rounded-full",
                         task.priority === "high" ? "bg-red-500" : task.priority === "medium" ? "bg-yellow-500" : "bg-blue-500"
                       )} />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                      <span className="text-[10px] font-black uppercase tracking-widest">
                         {task.priority}
                       </span>
                     </div>
@@ -190,18 +206,23 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                       </div>
                     )}
 
-                    {task.status === "completed" && task.completedAt && (
-                      <div className="flex items-center gap-1.5 text-green-600/80">
+                    {task.status === "completed" && task.updatedAt && (
+                      <div className="flex items-center gap-1.5 text-green-600/80 border-l pl-4">
                         <CheckCircle className="h-3 w-3" />
                         <span className="text-[10px] font-bold uppercase">
-                          Done: {format(new Date(task.completedAt), "MMM dd")}
+                          Completed
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all" onClick={() => setEditingTask(task)}>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all cursor-pointer" 
+                  onClick={() => setEditingTask(task)}
+                >
                   <Settings2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -218,23 +239,28 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
         <TabsContent value="activity" className="mt-4">
           <LeadActivityTimeline activities={leadData?.activities || initialActivities} />
         </TabsContent>
-        {/* Emails and Notes filters logic remains same as before */}
       </Tabs>
 
-      {/* EDIT MODAL - ALL FIELDS */}
+      {/* EDIT MODAL */}
       {editingTask && (
         <Dialog open={!!editingTask} onOpenChange={() => !loading && setEditingTask(null)}>
           <DialogContent className="sm:max-w-[450px]">
-            <DialogHeader><DialogTitle className="font-black italic uppercase">Edit Task</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle className="font-black italic uppercase flex items-center gap-2">
+                <Settings2 className="h-5 w-5 text-primary" /> Edit Task
+              </DialogTitle>
+            </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Title</Label>
                 <Input value={editingTask.title} onChange={e => setEditingTask({...editingTask, title: e.target.value})} />
               </div>
+              
               <div className="grid gap-2">
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground">Description</Label>
-                <Textarea value={editingTask.description || ""} onChange={e => setEditingTask({...editingTask, description: e.target.value})} />
+                <Textarea value={editingTask.description || ""} onChange={e => setEditingTask({...editingTask, description: e.target.value})} className="h-24 resize-none" />
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Priority</Label>
@@ -260,24 +286,47 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                   </Select>
                 </div>
               </div>
+
               <div className="grid gap-2">
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground">Due Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start font-normal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                    <Button variant="outline" className="w-full justify-start font-normal cursor-pointer">
+                      <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                       {editingTask.dueAt ? format(new Date(editingTask.dueAt), "PPP") : "Pick a date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={editingTask.dueAt ? new Date(editingTask.dueAt) : undefined} onSelect={date => setEditingTask({...editingTask, dueAt: date})} /></PopoverContent>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar 
+                      mode="single" 
+                      selected={editingTask.dueAt ? new Date(editingTask.dueAt) : undefined} 
+                      onSelect={date => setEditingTask({...editingTask, dueAt: date})} 
+                    />
+                  </PopoverContent>
                 </Popover>
               </div>
             </div>
-            <DialogFooter className="flex justify-between border-t pt-4">
-              <Button variant="destructive" size="icon" onClick={() => handleAction('delete')} disabled={loading}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => handleAction('update')} disabled={loading} className="px-8 font-bold">
+
+            <DialogFooter className="flex justify-between border-t pt-4 gap-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="icon" disabled={loading} className="cursor-pointer">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Task?</DialogTitle>
+                    <p className="text-sm text-muted-foreground">Are you sure you want to remove this task? This cannot be undone.</p>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="ghost" onClick={() => {}}>Cancel</Button>
+                    <Button variant="destructive" onClick={() => handleAction('delete')}>Delete</Button>
+                  </DialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <Button onClick={() => handleAction('update')} disabled={loading} className="flex-1 font-bold cursor-pointer">
                 {loading && <Loader2 className="animate-spin h-4 w-4 mr-2" />} SAVE CHANGES
               </Button>
             </DialogFooter>
