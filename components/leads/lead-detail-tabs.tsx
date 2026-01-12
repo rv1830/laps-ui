@@ -14,7 +14,8 @@ import {
   AlignLeft,
   User,
   CheckCircle,
-  Clock
+  Clock,
+  UserPlus
 } from "lucide-react"
 
 // UI Components
@@ -42,6 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+
 export function LeadDetailTabs({ activities: initialActivities }: { activities: any[] }) {
   const params = useParams()
   const router = useRouter()
@@ -54,6 +56,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
   const [editingTask, setEditingTask] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(false)
+  const [editTime, setEditTime] = useState("09:00")
 
   // 1. Fetching Tasks
   const fetchTasks = useCallback(async () => {
@@ -97,7 +100,15 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
         toast.success(`Task marked as ${newStatus}`)
       } 
       else if (action === 'update') {
-        await taskService.updateTask(workspaceId, taskId, editingTask)
+        // Time logic merge
+        const updatedDate = new Date(editingTask.dueAt || new Date())
+        const [hours, minutes] = editTime.split(":").map(Number)
+        updatedDate.setHours(hours, minutes)
+
+        await taskService.updateTask(workspaceId, taskId, {
+          ...editingTask,
+          dueAt: updatedDate.toISOString()
+        })
         toast.success("Task updated")
         setEditingTask(null)
       } 
@@ -144,7 +155,6 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
               )}
             >
               <div className="flex items-start gap-4">
-                {/* Status Toggle Button with Pointer Cursor */}
                 <button 
                   onClick={() => handleAction('status', task)} 
                   disabled={loading} 
@@ -178,7 +188,6 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                     </div>
                   )}
 
-                  {/* Metadata Row */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
                     <div className="flex items-center gap-1.5">
                       <div className={cn(
@@ -205,15 +214,6 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                         </span>
                       </div>
                     )}
-
-                    {task.status === "completed" && task.updatedAt && (
-                      <div className="flex items-center gap-1.5 text-green-600/80 border-l pl-4">
-                        <CheckCircle className="h-3 w-3" />
-                        <span className="text-[10px] font-bold uppercase">
-                          Completed
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -221,7 +221,10 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all cursor-pointer" 
-                  onClick={() => setEditingTask(task)}
+                  onClick={() => {
+                    setEditingTask(task)
+                    if (task.dueAt) setEditTime(format(new Date(task.dueAt), "HH:mm"))
+                  }}
                 >
                   <Settings2 className="h-4 w-4" />
                 </Button>
@@ -241,31 +244,81 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
         </TabsContent>
       </Tabs>
 
-      {/* EDIT MODAL */}
+      {/* --- TAGDA EDIT MODAL --- */}
       {editingTask && (
         <Dialog open={!!editingTask} onOpenChange={() => !loading && setEditingTask(null)}>
-          <DialogContent className="sm:max-w-[450px]">
+          <DialogContent className="sm:max-w-[480px]">
             <DialogHeader>
-              <DialogTitle className="font-black italic uppercase flex items-center gap-2">
-                <Settings2 className="h-5 w-5 text-primary" /> Edit Task
+              <DialogTitle className="font-black italic uppercase flex items-center gap-2 text-xl tracking-tight text-primary">
+                <Settings2 className="h-5 w-5" /> EDIT TASK
               </DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Title</Label>
-                <Input value={editingTask.title} onChange={e => setEditingTask({...editingTask, title: e.target.value})} />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Description</Label>
-                <Textarea value={editingTask.description || ""} onChange={e => setEditingTask({...editingTask, description: e.target.value})} className="h-24 resize-none" />
+            
+            <div className="py-4 space-y-4">
+              {/* Task Title */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Task Title *</Label>
+                <Input 
+                  placeholder="e.g. Call to discuss pricing" 
+                  value={editingTask.title} 
+                  onChange={e => setEditingTask({...editingTask, title: e.target.value})} 
+                />
               </div>
 
+              {/* Assign To - API comment kar di hai as requested */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+                  <UserPlus className="h-3 w-3" /> Assign To
+                </Label>
+                <Select 
+                  value={editingTask.assignedTo || ""} 
+                  onValueChange={val => setEditingTask({...editingTask, assignedTo: val})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select team member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {/* Yahan API se data aayega, abhi ke liye placeholders */}
+                    <SelectItem value="placeholder-1">Select Member...</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date & Time Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Priority</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+                    <CalendarIcon className="h-3 w-3" /> Due Date
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start font-normal cursor-pointer">
+                        {editingTask.dueAt ? format(new Date(editingTask.dueAt), "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar 
+                        mode="single" 
+                        selected={editingTask.dueAt ? new Date(editingTask.dueAt) : undefined} 
+                        onSelect={date => setEditingTask({...editingTask, dueAt: date?.toISOString()})} 
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" /> Time
+                  </Label>
+                  <Input type="time" value={editTime} onChange={e => setEditTime(e.target.value)} />
+                </div>
+              </div>
+
+              {/* Priority & Type Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Priority</Label>
                   <Select value={editingTask.priority} onValueChange={v => setEditingTask({...editingTask, priority: v})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Select Priority" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
@@ -273,10 +326,10 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Type</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Type</Label>
                   <Select value={editingTask.type} onValueChange={v => setEditingTask({...editingTask, type: v})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Select Type" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="call">Call</SelectItem>
                       <SelectItem value="meeting">Meeting</SelectItem>
@@ -287,47 +340,40 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                 </div>
               </div>
 
+              {/* Description */}
               <div className="grid gap-2">
-                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Due Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start font-normal cursor-pointer">
-                      <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-                      {editingTask.dueAt ? format(new Date(editingTask.dueAt), "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar 
-                      mode="single" 
-                      selected={editingTask.dueAt ? new Date(editingTask.dueAt) : undefined} 
-                      onSelect={date => setEditingTask({...editingTask, dueAt: date})} 
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Notes / Description</Label>
+                <Textarea 
+                  placeholder="Enter specific details about this task..." 
+                  value={editingTask.description || ""} 
+                  onChange={e => setEditingTask({...editingTask, description: e.target.value})} 
+                  className="h-24 resize-none" 
+                />
               </div>
             </div>
 
             <DialogFooter className="flex justify-between border-t pt-4 gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="icon" disabled={loading} className="cursor-pointer">
-                    <Trash2 className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" disabled={loading} className="text-destructive hover:bg-destructive/10 cursor-pointer">
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Delete Task?</DialogTitle>
-                    <p className="text-sm text-muted-foreground">Are you sure you want to remove this task? This cannot be undone.</p>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="ghost" onClick={() => {}}>Cancel</Button>
-                    <Button variant="destructive" onClick={() => handleAction('delete')}>Delete</Button>
-                  </DialogFooter>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>This will permanently delete this task. This action cannot be undone.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleAction('delete')} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                  </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
 
-              <Button onClick={() => handleAction('update')} disabled={loading} className="flex-1 font-bold cursor-pointer">
-                {loading && <Loader2 className="animate-spin h-4 w-4 mr-2" />} SAVE CHANGES
+              <Button onClick={() => handleAction('update')} disabled={loading} className="px-8 font-bold cursor-pointer">
+                {loading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />} 
+                SAVE CHANGES
               </Button>
             </DialogFooter>
           </DialogContent>
