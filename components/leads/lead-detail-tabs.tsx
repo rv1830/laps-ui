@@ -344,6 +344,18 @@ export function LeadDetailTabs({ activities: initialActivities, tasks: initialTa
                 </div>
               </div>
 
+              {/* Status Section Added Here */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Task Status</Label>
+                <Select value={editingTask.status} onValueChange={v => setEditingTask({ ...editingTask, status: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">⏳ Pending</SelectItem>
+                    <SelectItem value="completed">✅ Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold uppercase text-muted-foreground">Priority</Label>

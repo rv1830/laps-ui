@@ -68,6 +68,7 @@ export function LeadQuickActions({ lead, isLoading }: LeadQuickActionsProps) {
     title: "",
     description: "",
     priority: "medium" as "low" | "medium" | "high",
+    status: "pending" as "pending" | "completed",
     type: "follow_up",
     assignedTo: lead?.ownerId || "" // Defaulting to lead owner
   })
@@ -148,6 +149,7 @@ export function LeadQuickActions({ lead, isLoading }: LeadQuickActionsProps) {
         title: taskData.title,
         description: taskData.description,
         priority: taskData.priority,
+        status: taskData.status,
         type: taskData.type,
         //  assignedToId: taskData.assignedTo,
         dueAt: finalDueAt.toISOString(),
@@ -161,6 +163,7 @@ export function LeadQuickActions({ lead, isLoading }: LeadQuickActionsProps) {
         title: "",
         description: "",
         priority: "medium",
+        status: "pending",
         type: "follow_up",
         assignedTo: lead.ownerId || ""
       })
@@ -314,6 +317,21 @@ export function LeadQuickActions({ lead, isLoading }: LeadQuickActionsProps) {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                {/* Status Selection */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Task Status</Label>
+                  <Select
+                    value={taskData.status}
+                    onValueChange={(v) => setTaskData({ ...taskData, status: v as "pending" | "completed" })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">⏳ Pending</SelectItem>
+                      <SelectItem value="completed">✅ Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Description Field */}

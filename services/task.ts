@@ -6,6 +6,7 @@ export interface CreateTaskData {
   description?: string;
   type?: string;
   priority?: "low" | "medium" | "high";
+  status?: "pending" | "completed";
   dueAt?: string;
   assignedTo?: string;
 }
