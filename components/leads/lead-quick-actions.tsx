@@ -155,7 +155,7 @@ export function LeadQuickActions({ lead }: { lead: any }) {
         {/* ADD TASK DIALOG */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="w-full justify-start gap-3 h-10 font-medium hover:bg-primary/5 hover:text-primary border-dashed">
+            <Button variant="outline" className="w-full justify-start gap-3 h-10 font-medium hover:bg-primary/5 hover:text-primary border-dashed cursor-pointer">
               <CheckSquare className="h-4 w-4 text-primary" /> Add Task
             </Button>
           </DialogTrigger>
