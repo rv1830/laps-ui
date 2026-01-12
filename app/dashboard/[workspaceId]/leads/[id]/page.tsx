@@ -48,11 +48,7 @@ export default function LeadDetailPage() {
           <ArrowLeft className="h-8 w-8 text-muted-foreground" />
         </div>
         <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Lead Intelligence Not Found</p>
-        <Link href={`/dashboard/${workspaceId}/leads`}>
-          <Button variant="outline" className="rounded-full px-8 uppercase font-black text-xs">
-            Back to Hub
-          </Button>
-        </Link>
+       
       </div>
     )
   }
@@ -60,16 +56,16 @@ export default function LeadDetailPage() {
   return (
     <div className="flex flex-col h-full bg-background/50">
       {/* 1. Header fixed hai, turant dikhega */}
-      <TopHeader
-        title=""
-        actions={
-          <Link href={`/dashboard/${workspaceId}/leads`}>
-            <Button variant="ghost" size="sm" className="gap-2 font-bold hover:text-primary transition-colors">
-              <ArrowLeft className="h-4 w-4" /> Back to Leads
-            </Button>
-          </Link>
-        }
-      />
+      <TopHeader 
+  title="Lead Intelligence" 
+  subtitle={
+    loading ? (
+      <Skeleton className="h-3 w-40 mt-1 opacity-50" />
+    ) : (
+      `Managing ${lead?.fullName}`
+    )
+  }
+/>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {/* 2. LeadDetailHeader: Agar lead hai toh dikhao, warna shimmer */}
