@@ -26,6 +26,7 @@ export default function LeadDetailPage() {
     const loadLead = async () => {
       try {
         setLoading(true)
+        // Backend includes leads, tasks, and activities in this response
         const data = await leadService.getLeadDetails(workspaceId, id)
         setLead(data)
       } catch (err) {
@@ -41,51 +42,66 @@ export default function LeadDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading Intelligence...</p>
+        </div>
       </div>
     )
   }
 
   if (!lead) {
     return (
-      <div className="flex flex-col h-full items-center justify-center gap-4">
-        <p className="text-muted-foreground">Lead not found</p>
+      <div className="flex flex-col h-screen items-center justify-center gap-4">
+        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+          <ArrowLeft className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Lead Intelligence Not Found</p>
         <Link href={`/dashboard/${workspaceId}/leads`}>
-          <Button variant="outline">Back to Leads</Button>
+          <Button variant="outline" className="rounded-full px-8 uppercase font-black text-xs">
+            Back to Hub
+          </Button>
         </Link>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background/50">
       <TopHeader
         title=""
         actions={
           <Link href={`/dashboard/${workspaceId}/leads`}>
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-2 font-bold hover:text-primary transition-colors">
               <ArrowLeft className="h-4 w-4" /> Back to Leads
             </Button>
           </Link>
         }
       />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         <LeadDetailHeader lead={lead} workspaceId={workspaceId} />
         
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column: Activities */}
+            {/* Left Column: Intelligence, Activities & History */}
             <div className="lg:col-span-2 space-y-6">
-              <LeadDetailTabs activities={lead.activities || []} />
+              <LeadDetailTabs 
+                activities={lead.activities || []} 
+                tasks={lead.tasks || []} 
+              />
             </div>
 
-            {/* Right Column: Info & Actions */}
+            {/* Right Column: Profile, Action Queue & Status */}
             <div className="space-y-6">
               <LeadInfoCard lead={lead} />
+              
+              {/* Task queue for quick viewing in sidebar */}
               <LeadTasks tasks={lead.tasks || []} />
+              
               <LeadAutomationStatus leadId={lead.id} />
+              
               <LeadQuickActions lead={lead} />
             </div>
           </div>

@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { 
   Mail, Calendar, FileText, Receipt, Zap, Sparkles, 
-  Trash2, Loader2, MessageSquarePlus 
+  Trash2, Loader2, MessageSquarePlus, CheckSquare, PlusCircle 
 } from "lucide-react"
 import { leadService } from "@/services/lead"
+import { taskService } from "@/services/task" // New Service
 import { toast } from "sonner"
 import {
   AlertDialog,
@@ -21,11 +22,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export function LeadQuickActions({ lead }: { lead: any }) {
   const params = useParams()
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isTaskLoading, setIsTaskLoading] = useState(false)
+  const [taskTitle, setTaskTitle] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  
   const workspaceId = params.workspaceId as string
 
   const handleDelete = async () => {
@@ -42,6 +50,29 @@ export function LeadQuickActions({ lead }: { lead: any }) {
     }
   }
 
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!taskTitle.trim()) return
+    
+    try {
+      setIsTaskLoading(true)
+      await taskService.createTask(workspaceId, {
+        leadId: lead.id,
+        title: taskTitle,
+        priority: "medium",
+        type: "follow_up"
+      })
+      toast.success("Task created successfully")
+      setTaskTitle("")
+      setIsDialogOpen(false)
+      router.refresh() // Timeline and task list refresh karne ke liye
+    } catch (error) {
+      toast.error("Failed to create task")
+    } finally {
+      setIsTaskLoading(false)
+    }
+  }
+
   return (
     <Card className="shadow-sm border-primary/10 overflow-hidden">
       <CardHeader className="bg-muted/30 pb-3">
@@ -50,6 +81,40 @@ export function LeadQuickActions({ lead }: { lead: any }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 grid grid-cols-1 gap-2">
+        
+        {/* ADD TASK DIALOG */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="w-full justify-start gap-3 h-10 font-medium hover:bg-primary/5 hover:text-primary border-dashed">
+              <CheckSquare className="h-4 w-4 text-primary" /> Add Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <form onSubmit={handleCreateTask}>
+              <DialogHeader>
+                <DialogTitle className="uppercase italic font-black tracking-tighter">New Task for {lead.fullName}</DialogTitle>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <div className="space-y-2">
+                  <Label>Task Title</Label>
+                  <Input 
+                    placeholder="e.g. Call to discuss pricing" 
+                    value={taskTitle} 
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isTaskLoading}>
+                  {isTaskLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+                  Create Task
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         <Button variant="outline" className="w-full justify-start gap-3 h-10 font-medium hover:bg-primary/5 hover:text-primary border-dashed">
           <Mail className="h-4 w-4 text-primary" /> Send Email
         </Button>
@@ -75,7 +140,6 @@ export function LeadQuickActions({ lead }: { lead: any }) {
             <Sparkles className="h-4 w-4" /> AI Suggestion
           </Button>
 
-          {/* Delete Action with Alert Dialog */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" className="w-full justify-start gap-3 h-10 text-destructive hover:bg-destructive/10 hover:text-destructive">
