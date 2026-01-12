@@ -45,10 +45,9 @@ import {
 } from "@/components/ui/alert-dialog"
 
 interface LeadDetailTabsProps {
-  activities: any[] // ya jo bhi aapka Activity type hai
-  tasks: any[]      // <--- Ye line miss ho rahi hai, ise add karo
+  activities: any[]
+  tasks: any[]
 }
-
 
 export function LeadDetailTabs({ activities: initialActivities, tasks: initialTasks }: LeadDetailTabsProps) {
   const params = useParams()
@@ -183,6 +182,13 @@ export function LeadDetailTabs({ activities: initialActivities, tasks: initialTa
                     )}>
                       {task.title}
                     </p>
+                    {/* Status Badge */}
+                    <span className={cn(
+                      "text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-widest ml-auto",
+                      task.status === "completed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                    )}>
+                      {task.status}
+                    </span>
                   </div>
 
                   {task.description && (
@@ -209,6 +215,16 @@ export function LeadDetailTabs({ activities: initialActivities, tasks: initialTa
                         {task.dueAt ? `Due: ${format(new Date(task.dueAt), "MMM dd, yyyy")}` : "No Due Date"}
                       </span>
                     </div>
+
+                    {/* Assignee display fix */}
+                    {task.assignee && (
+                      <div className="flex items-center gap-1.5 text-muted-foreground border-l pl-4">
+                        <User className="h-3 w-3 text-primary" />
+                        <span className="text-[10px] font-bold uppercase text-primary">
+                          {task.assignee.firstName} {task.assignee.lastName}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
