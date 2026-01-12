@@ -6,8 +6,14 @@ import { Mail, Phone, Building2, Briefcase, Globe, Copy, CalendarDays } from "lu
 import { format, isValid } from "date-fns"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export function LeadInfoCard({ lead }: { lead: any }) {
+interface LeadInfoCardProps {
+  lead: any
+  isLoading?: boolean
+}
+
+export function LeadInfoCard({ lead, isLoading }: LeadInfoCardProps) {
   const copyToClipboard = (text: string) => {
     if (!text) return;
     navigator.clipboard.writeText(text)
@@ -15,6 +21,42 @@ export function LeadInfoCard({ lead }: { lead: any }) {
   }
 
   const formatDate = (d: any) => d && isValid(new Date(d)) ? format(new Date(d), "MMM d, yyyy") : "N/A";
+
+  if (isLoading) {
+    return (
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3 border-b flex flex-row items-center justify-between bg-muted/20">
+          <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Lead Details</CardTitle>
+          <Skeleton className="h-5 w-20" />
+        </CardHeader>
+        <CardContent className="pt-5 space-y-4">
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-start gap-3">
+                <Skeleton className="h-4 w-4 rounded-full mt-1" />
+                <div className="flex-1">
+                  <Skeleton className="h-3 w-24 mb-2" />
+                  <Skeleton className="h-4 w-full max-w-[200px]" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t border-dashed space-y-3">
+            <div className="flex justify-between items-center bg-muted/30 p-2 rounded-md">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-3.5 w-3.5" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!lead) return null;
 
   return (
     <Card className="shadow-sm">
@@ -64,7 +106,7 @@ export function LeadInfoCard({ lead }: { lead: any }) {
             </div>
             <span className="text-xs font-bold text-foreground">{formatDate(lead.createdAt)}</span>
           </div>
-          
+
           {lead.lastActivityAt && (
             <div className="flex justify-between items-center px-2">
               <span className="text-xs text-muted-foreground font-medium">Last Activity</span>

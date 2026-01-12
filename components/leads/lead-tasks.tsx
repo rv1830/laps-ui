@@ -1,19 +1,20 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  Phone, Mail, Clock, Calendar, AlertCircle, 
-  CheckCircle2, Circle, MessageSquare, Laptop 
+import {
+  Phone, Mail, Clock, Calendar, AlertCircle,
+  CheckCircle2, Circle, MessageSquare, Laptop
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Next Level Type-based styling
-const taskTypeConfig: Record<string, { icon: any, color: string, bg: string }> = { 
-  call: { icon: Phone, color: "text-blue-600", bg: "bg-blue-100" }, 
-  email: { icon: Mail, color: "text-purple-600", bg: "bg-purple-100" }, 
+const taskTypeConfig: Record<string, { icon: any, color: string, bg: string }> = {
+  call: { icon: Phone, color: "text-blue-600", bg: "bg-blue-100" },
+  email: { icon: Mail, color: "text-purple-600", bg: "bg-purple-100" },
   follow_up: { icon: Clock, color: "text-orange-600", bg: "bg-orange-100" },
   meeting: { icon: Calendar, color: "text-rose-600", bg: "bg-rose-100" },
   message: { icon: MessageSquare, color: "text-emerald-600", bg: "bg-emerald-100" },
@@ -26,7 +27,36 @@ const priorityConfig = {
   low: { dot: "bg-blue-500", bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-100" }
 }
 
-export function LeadTasks({ tasks }: { tasks: any[] }) {
+export function LeadTasks({ tasks, isLoading }: { tasks: any[], isLoading?: boolean }) {
+  // --- NEXT LEVEL SKELETON LOADER FOR SIDEBAR WIDGET ---
+  if (isLoading) {
+    return (
+      <Card className="shadow-sm border-primary/10 overflow-hidden">
+        <CardHeader className="py-3 px-4 bg-muted/30 border-b">
+          <Skeleton className="h-4 w-24" />
+        </CardHeader>
+        <CardContent className="p-0">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-start gap-3 p-4 border-b border-border/40">
+              <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+              <div className="flex-1 space-y-3">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-2 w-2 rounded-full" />
+                </div>
+                <Skeleton className="h-2 w-1/3 rounded-full" />
+                <div className="flex justify-between items-center pt-1">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-5 w-5 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="shadow-sm border-primary/10 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between py-3 px-4 bg-muted/30 border-b">
@@ -37,7 +67,7 @@ export function LeadTasks({ tasks }: { tasks: any[] }) {
           {tasks.filter(t => t.status !== "completed").length}
         </Badge>
       </CardHeader>
-      
+
       <CardContent className="p-0">
         {tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -54,16 +84,15 @@ export function LeadTasks({ tasks }: { tasks: any[] }) {
               const Icon = typeCfg.icon
               const isOverdue = task.status !== "completed" && task.dueAt && new Date(task.dueAt) < new Date()
               const isCompleted = task.status === "completed"
-              
+
               return (
-                <div 
-                  key={task.id} 
+                <div
+                  key={task.id}
                   className={cn(
-                    "group flex items-start gap-3 p-4 transition-all hover:bg-muted/10", 
+                    "group flex items-start gap-3 p-4 transition-all hover:bg-muted/10",
                     isOverdue && !isCompleted && "bg-red-50/30"
                   )}
                 >
-                  {/* Next Level Icon Box */}
                   <div className={cn(
                     "mt-0.5 p-1.5 rounded-lg shrink-0 transition-transform group-hover:scale-110",
                     isCompleted ? "bg-green-50" : typeCfg.bg
@@ -75,23 +104,21 @@ export function LeadTasks({ tasks }: { tasks: any[] }) {
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <p className={cn(
-                          "text-xs font-bold truncate tracking-tight", 
+                          "text-xs font-bold truncate tracking-tight",
                           isCompleted ? "line-through text-muted-foreground" : "text-foreground"
                         )}>
                           {task.title}
                         </p>
-                        
-                        {/* Status Badge Tagda Style */}
                         <span className={cn(
                           "text-[7px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter border",
-                          isCompleted 
-                            ? "bg-green-50 text-green-700 border-green-200" 
+                          isCompleted
+                            ? "bg-green-50 text-green-700 border-green-200"
                             : "bg-amber-50 text-amber-700 border-amber-200"
                         )}>
                           {task.status}
                         </span>
                       </div>
-                      
+
                       {isOverdue && !isCompleted && (
                         <div className="flex items-center gap-0.5 animate-pulse">
                           <AlertCircle className="h-2.5 w-2.5 text-red-600" />
@@ -100,18 +127,16 @@ export function LeadTasks({ tasks }: { tasks: any[] }) {
                       )}
                     </div>
 
-                    {/* Description ki jagah Priority dikhaya */}
                     <div className="flex items-center gap-2">
-                       <span className={cn(
-                         "text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest border flex items-center gap-1",
-                         prioCfg.bg, prioCfg.text, prioCfg.border
-                       )}>
-                         <div className={cn("h-1 w-1 rounded-full", prioCfg.dot)} />
-                         {task.priority} Priority
-                       </span>
+                      <span className={cn(
+                        "text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest border flex items-center gap-1",
+                        prioCfg.bg, prioCfg.text, prioCfg.border
+                      )}>
+                        <div className={cn("h-1 w-1 rounded-full", prioCfg.dot)} />
+                        {task.priority} Priority
+                      </span>
                     </div>
 
-                    {/* Footer Metadata */}
                     <div className="flex items-center justify-between pt-1">
                       <div className="flex items-center gap-2">
                         {task.dueAt && (
@@ -125,7 +150,6 @@ export function LeadTasks({ tasks }: { tasks: any[] }) {
                         )}
                       </div>
 
-                      {/* Assignee Avatar */}
                       {task.assignee && (
                         <div className="relative group/avatar">
                           <Avatar className="h-5 w-5 ring-2 ring-background shadow-sm transition-transform group-hover/avatar:-translate-y-0.5">

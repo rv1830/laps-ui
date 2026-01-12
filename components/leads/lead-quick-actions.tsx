@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { 
-  Mail, Calendar as CalendarIcon, FileText, Receipt, Zap, Sparkles, 
+import {
+  Mail, Calendar as CalendarIcon, FileText, Receipt, Zap, Sparkles,
   Trash2, Loader2, MessageSquarePlus, CheckSquare, PlusCircle, UserPlus, Clock
 } from "lucide-react"
 import { leadService } from "@/services/lead"
@@ -27,13 +27,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger, 
-  DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
 } from "@/components/ui/dialog"
 
 import { Input } from "@/components/ui/input"
@@ -43,7 +43,14 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
 
-export function LeadQuickActions({ lead }: { lead: any }) {
+import { Skeleton } from "@/components/ui/skeleton"
+
+interface LeadQuickActionsProps {
+  lead: any
+  isLoading?: boolean
+}
+
+export function LeadQuickActions({ lead, isLoading }: LeadQuickActionsProps) {
   const params = useParams()
   const router = useRouter()
   const workspaceId = params.workspaceId as string
@@ -53,7 +60,7 @@ export function LeadQuickActions({ lead }: { lead: any }) {
   const [isTaskLoading, setIsTaskLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [workspaceUsers, setWorkspaceUsers] = useState<any[]>([])
-  
+
   // Form States
   const [date, setDate] = useState<Date>()
   const [time, setTime] = useState("09:00")
@@ -62,8 +69,33 @@ export function LeadQuickActions({ lead }: { lead: any }) {
     description: "",
     priority: "medium" as "low" | "medium" | "high",
     type: "follow_up",
-    assignedTo: lead.ownerId || "" // Defaulting to lead owner
+    assignedTo: lead?.ownerId || "" // Defaulting to lead owner
   })
+
+  if (isLoading) {
+    return (
+      <Card className="shadow-sm border-primary/10 overflow-hidden">
+        <CardHeader className="bg-muted/30 pb-3">
+          <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <Zap className="h-3 w-3 text-primary" /> Quick Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 grid grid-cols-1 gap-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <div className="mt-2 pt-2 border-t space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!lead) return null;
 
   // Fetch users when dialog opens
   // useEffect(() => {
@@ -97,7 +129,7 @@ export function LeadQuickActions({ lead }: { lead: any }) {
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Strict Validation
     if (!taskData.title.trim()) return toast.error("Task title is required")
     if (!date) return toast.error("Please select a due date")
@@ -105,7 +137,7 @@ export function LeadQuickActions({ lead }: { lead: any }) {
 
     try {
       setIsTaskLoading(true)
-      
+
       // Merge Date and Time
       const [hours, minutes] = time.split(":").map(Number)
       const finalDueAt = new Date(date)
@@ -117,20 +149,20 @@ export function LeadQuickActions({ lead }: { lead: any }) {
         description: taskData.description,
         priority: taskData.priority,
         type: taskData.type,
-      //  assignedToId: taskData.assignedTo,
+        //  assignedToId: taskData.assignedTo,
         dueAt: finalDueAt.toISOString(),
       }
 
       await taskService.createTask(workspaceId, payload)
       toast.success("Task created and assigned successfully")
-      
+
       // Reset Form
-      setTaskData({ 
-        title: "", 
-        description: "", 
-        priority: "medium", 
-        type: "follow_up", 
-        assignedTo: lead.ownerId || "" 
+      setTaskData({
+        title: "",
+        description: "",
+        priority: "medium",
+        type: "follow_up",
+        assignedTo: lead.ownerId || ""
       })
       setDate(undefined)
       setIsDialogOpen(false)
@@ -149,9 +181,9 @@ export function LeadQuickActions({ lead }: { lead: any }) {
           <Zap className="h-3 w-3 text-primary" /> Quick Actions
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="p-3 grid grid-cols-1 gap-2">
-        
+
         {/* ADD TASK DIALOG */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -172,10 +204,10 @@ export function LeadQuickActions({ lead }: { lead: any }) {
                 {/* Title Field */}
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase text-muted-foreground">Task Title *</Label>
-                  <Input 
-                    placeholder="e.g. Follow up on proposal" 
-                    value={taskData.title} 
-                    onChange={(e) => setTaskData({...taskData, title: e.target.value})}
+                  <Input
+                    placeholder="e.g. Follow up on proposal"
+                    value={taskData.title}
+                    onChange={(e) => setTaskData({ ...taskData, title: e.target.value })}
                     className="focus-visible:ring-primary"
                   />
                 </div>
@@ -185,9 +217,9 @@ export function LeadQuickActions({ lead }: { lead: any }) {
                   <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
                     <UserPlus className="h-3 w-3" /> Assign To *
                   </Label>
-                  <Select 
-                    value={taskData.assignedTo} 
-                    onValueChange={(val) => setTaskData({...taskData, assignedTo: val})}
+                  <Select
+                    value={taskData.assignedTo}
+                    onValueChange={(val) => setTaskData({ ...taskData, assignedTo: val })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select team member" />
@@ -226,7 +258,7 @@ export function LeadQuickActions({ lead }: { lead: any }) {
                           selected={date}
                           onSelect={setDate}
                           initialFocus
-                          disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
                       </PopoverContent>
                     </Popover>
@@ -237,10 +269,10 @@ export function LeadQuickActions({ lead }: { lead: any }) {
                     <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
                       <Clock className="h-3 w-3" /> Time
                     </Label>
-                    <Input 
-                      type="time" 
-                      value={time} 
-                      onChange={(e) => setTime(e.target.value)} 
+                    <Input
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
                     />
                   </div>
                 </div>
@@ -249,9 +281,9 @@ export function LeadQuickActions({ lead }: { lead: any }) {
                   {/* Priority Select */}
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-muted-foreground">Priority</Label>
-                    <Select 
-                      value={taskData.priority} 
-                      onValueChange={(val: any) => setTaskData({...taskData, priority: val})}
+                    <Select
+                      value={taskData.priority}
+                      onValueChange={(val: any) => setTaskData({ ...taskData, priority: val })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Priority" />
@@ -267,9 +299,9 @@ export function LeadQuickActions({ lead }: { lead: any }) {
                   {/* Task Type Select */}
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-muted-foreground">Type</Label>
-                    <Select 
-                      value={taskData.type} 
-                      onValueChange={(val: any) => setTaskData({...taskData, type: val})}
+                    <Select
+                      value={taskData.type}
+                      onValueChange={(val: any) => setTaskData({ ...taskData, type: val })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Type" />
@@ -287,19 +319,19 @@ export function LeadQuickActions({ lead }: { lead: any }) {
                 {/* Description Field */}
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase text-muted-foreground">Notes</Label>
-                  <Textarea 
-                    placeholder="Add specific instructions..." 
-                    value={taskData.description} 
-                    onChange={(e) => setTaskData({...taskData, description: e.target.value})}
+                  <Textarea
+                    placeholder="Add specific instructions..."
+                    value={taskData.description}
+                    onChange={(e) => setTaskData({ ...taskData, description: e.target.value })}
                     className="resize-none h-20"
                   />
                 </div>
               </div>
 
               <DialogFooter>
-                <Button 
-                  type="submit" 
-                  disabled={isTaskLoading} 
+                <Button
+                  type="submit"
+                  disabled={isTaskLoading}
                   className="w-full font-bold uppercase tracking-wider h-11 cursor-pointer"
                 >
                   {isTaskLoading ? (
@@ -318,7 +350,7 @@ export function LeadQuickActions({ lead }: { lead: any }) {
         <Button variant="outline" className="w-full justify-start gap-3 h-10 font-medium hover:bg-primary/5 hover:text-primary border-dashed">
           <Mail className="h-4 w-4 text-primary" /> Send Email
         </Button>
-        
+
         <Button variant="outline" className="w-full justify-start gap-3 h-10 font-medium hover:bg-primary/5 hover:text-primary border-dashed">
           <MessageSquarePlus className="h-4 w-4 text-primary" /> Add to Sequence
         </Button>

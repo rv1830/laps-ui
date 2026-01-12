@@ -32,6 +32,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,9 +48,10 @@ import {
 interface LeadDetailTabsProps {
   activities: any[]
   tasks: any[]
+  isLoading?: boolean // Loading prop added
 }
 
-export function LeadDetailTabs({ activities: initialActivities, tasks: initialTasks }: LeadDetailTabsProps) {
+export function LeadDetailTabs({ activities: initialActivities, tasks: initialTasks, isLoading }: LeadDetailTabsProps) {
   const params = useParams()
   const router = useRouter()
 
@@ -149,131 +151,150 @@ export function LeadDetailTabs({ activities: initialActivities, tasks: initialTa
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tasks" className="mt-4 space-y-3">
-          {tasks.map((task: any) => (
-            <div
-              key={task.id}
-              className={cn(
-                "group relative flex flex-col gap-3 p-4 rounded-xl border transition-all shadow-sm",
-                task.status === "completed" ? "bg-muted/40 opacity-80" : "bg-card hover:border-primary/40"
-              )}
-            >
-              <div className="flex items-start gap-4">
-                <button
-                  onClick={() => handleAction('status', task)}
-                  disabled={loading}
-                  className="mt-1 transition-transform active:scale-90 cursor-pointer disabled:cursor-not-allowed"
-                >
-                  {task.status === "completed" ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500 fill-green-500/10" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
-                  )}
-                </button>
-
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">
-                      {task.type}
-                    </span>
-                    <p className={cn(
-                      "text-sm font-bold leading-none",
-                      task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"
-                    )}>
-                      {task.title}
-                    </p>
-                    {/* Status Badge */}
-                    <span className={cn(
-                      "text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-widest ml-auto",
-                      task.status === "completed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                    )}>
-                      {task.status}
-                    </span>
-                  </div>
-
-                  {task.description && (
-                    <div className="flex items-start gap-2 text-muted-foreground opacity-80">
-                      <AlignLeft className="h-3 w-3 mt-1 shrink-0" />
-                      <p className="text-xs italic leading-relaxed">{task.description}</p>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
-                    <div className="flex items-center gap-1.5">
-                      <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        task.priority === "high" ? "bg-red-500" : task.priority === "medium" ? "bg-yellow-500" : "bg-blue-500"
-                      )} />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                        {task.priority}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <CalendarIcon className="h-3 w-3" />
-                      <span className="text-[10px] font-bold uppercase">
-                        {task.dueAt ? `Due: ${format(new Date(task.dueAt), "MMM dd, yyyy")}` : "No Due Date"}
-                      </span>
-                    </div>
-
-                    {/* Assignee display fix */}
-                    {task.assignee && (
-                      <div className="flex items-center gap-1.5 text-muted-foreground border-l pl-4">
-                        <User className="h-3 w-3 text-primary" />
-                        <span className="text-[10px] font-bold uppercase text-primary">
-                          {task.assignee.firstName} {task.assignee.lastName}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 cursor-pointer"
-                    onClick={() => {
-                      setEditingTask(task)
-                      if (task.dueAt) setEditTime(format(new Date(task.dueAt), "HH:mm"))
-                    }}
-                  >
-                    <Settings2 className="h-4 w-4" />
-                  </Button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 cursor-pointer">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Task?</AlertDialogTitle>
-                        <AlertDialogDescription>Are you sure you want to remove this task? This cannot be undone.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleAction('delete', task)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+        <TabsContent value="activity" className="mt-4">
+          {isLoading ? (
+            <div className="space-y-6 bg-background border rounded-xl p-8">
+               <div className="flex justify-between items-center mb-6">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-9 w-24 rounded-md" />
               </div>
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="flex gap-4">
+                  <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
+                  <div className="flex-1 space-y-2 pt-1">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-4 w-1/3" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-3 w-1/4" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-
-          {tasks.length === 0 && (
-            <div className="text-center py-10 border border-dashed rounded-xl italic text-muted-foreground text-xs uppercase tracking-widest">
-              No tasks found
-            </div>
+          ) : (
+            <LeadActivityTimeline activities={leadData?.activities || initialActivities} />
           )}
         </TabsContent>
 
-        <TabsContent value="activity" className="mt-4">
-          <LeadActivityTimeline activities={leadData?.activities || initialActivities} />
+        <TabsContent value="tasks" className="mt-4 space-y-3">
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl" />)}
+            </div>
+          ) : (
+            tasks.map((task: any) => (
+              <div
+                key={task.id}
+                className={cn(
+                  "group relative flex flex-col gap-3 p-4 rounded-xl border transition-all shadow-sm",
+                  task.status === "completed" ? "bg-muted/40 opacity-80" : "bg-card hover:border-primary/40"
+                )}
+              >
+                <div className="flex items-start gap-4">
+                  <button
+                    onClick={() => handleAction('status', task)}
+                    disabled={loading}
+                    className="mt-1 transition-transform active:scale-90 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    {task.status === "completed" ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500 fill-green-500/10" />
+                    ) : (
+                      <Circle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
+                    )}
+                  </button>
+
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">
+                        {task.type}
+                      </span>
+                      <p className={cn(
+                        "text-sm font-bold leading-none",
+                        task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"
+                      )}>
+                        {task.title}
+                      </p>
+                      <span className={cn(
+                        "text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-widest ml-auto",
+                        task.status === "completed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                      )}>
+                        {task.status}
+                      </span>
+                    </div>
+
+                    {task.description && (
+                      <div className="flex items-start gap-2 text-muted-foreground opacity-80">
+                        <AlignLeft className="h-3 w-3 mt-1 shrink-0" />
+                        <p className="text-xs italic leading-relaxed">{task.description}</p>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+                      <div className="flex items-center gap-1.5">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          task.priority === "high" ? "bg-red-500" : task.priority === "medium" ? "bg-yellow-500" : "bg-blue-500"
+                        )} />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                          {task.priority}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <CalendarIcon className="h-3 w-3" />
+                        <span className="text-[10px] font-bold uppercase">
+                          {task.dueAt ? `Due: ${format(new Date(task.dueAt), "MMM dd, yyyy")}` : "No Due Date"}
+                        </span>
+                      </div>
+
+                      {task.assignee && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground border-l pl-4">
+                          <User className="h-3 w-3 text-primary" />
+                          <span className="text-[10px] font-bold uppercase text-primary">
+                            {task.assignee.firstName} {task.assignee.lastName}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 cursor-pointer"
+                      onClick={() => {
+                        setEditingTask(task)
+                        if (task.dueAt) setEditTime(format(new Date(task.dueAt), "HH:mm"))
+                      }}
+                    >
+                      <Settings2 className="h-4 w-4" />
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 cursor-pointer">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Task?</AlertDialogTitle>
+                          <AlertDialogDescription>Are you sure you want to remove this task? This cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleAction('delete', task)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </TabsContent>
       </Tabs>
 
