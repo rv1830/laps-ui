@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { format } from "date-fns"
-import { 
-  CheckCircle2, 
-  Circle, 
-  Trash2, 
-  Loader2, 
-  Settings2, 
+import {
+  CheckCircle2,
+  Circle,
+  Trash2,
+  Loader2,
+  Settings2,
   CalendarIcon,
   AlignLeft,
   User,
@@ -44,15 +44,21 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-export function LeadDetailTabs({ activities: initialActivities }: { activities: any[] }) {
+interface LeadDetailTabsProps {
+  activities: any[] // ya jo bhi aapka Activity type hai
+  tasks: any[]      // <--- Ye line miss ho rahi hai, ise add karo
+}
+
+
+export function LeadDetailTabs({ activities: initialActivities, tasks: initialTasks }: LeadDetailTabsProps) {
   const params = useParams()
   const router = useRouter()
-  
+
   const workspaceId = params.workspaceId as string
-  const leadId = (params.leadId || params.id) as string 
+  const leadId = (params.leadId || params.id) as string
 
   const [leadData, setLeadData] = useState<any>(null)
-  const [tasks, setTasks] = useState<any[]>([])
+  const [tasks, setTasks] = useState<any[]>(initialTasks || [])
   const [editingTask, setEditingTask] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(false)
@@ -93,12 +99,12 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
     setLoading(true)
     try {
       const taskId = action === 'status' ? taskData.id : (taskData?.id || editingTask?.id)
-      
+
       if (action === 'status') {
         const newStatus = taskData.status === "completed" ? "pending" : "completed"
         await taskService.updateTask(workspaceId, taskId, { status: newStatus })
         toast.success(`Task marked as ${newStatus}`)
-      } 
+      }
       else if (action === 'update') {
         const updatedDate = new Date(editingTask.dueAt || new Date())
         const [hours, minutes] = editTime.split(":").map(Number)
@@ -110,13 +116,13 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
         })
         toast.success("Task updated")
         setEditingTask(null)
-      } 
+      }
       else if (action === 'delete') {
         await taskService.deleteTask(workspaceId, taskId)
         toast.success("Task deleted")
         if (editingTask) setEditingTask(null)
       }
-      
+
       await fetchTasks()
       router.refresh()
     } catch (err) {
@@ -146,17 +152,17 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
 
         <TabsContent value="tasks" className="mt-4 space-y-3">
           {tasks.map((task: any) => (
-            <div 
-              key={task.id} 
+            <div
+              key={task.id}
               className={cn(
                 "group relative flex flex-col gap-3 p-4 rounded-xl border transition-all shadow-sm",
                 task.status === "completed" ? "bg-muted/40 opacity-80" : "bg-card hover:border-primary/40"
               )}
             >
               <div className="flex items-start gap-4">
-                <button 
-                  onClick={() => handleAction('status', task)} 
-                  disabled={loading} 
+                <button
+                  onClick={() => handleAction('status', task)}
+                  disabled={loading}
                   className="mt-1 transition-transform active:scale-90 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {task.status === "completed" ? (
@@ -207,10 +213,10 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                 </div>
 
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 cursor-pointer" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 cursor-pointer"
                     onClick={() => {
                       setEditingTask(task)
                       if (task.dueAt) setEditTime(format(new Date(task.dueAt), "HH:mm"))
@@ -264,18 +270,18 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                 <Settings2 className="h-5 w-5" /> EDIT TASK
               </DialogTitle>
             </DialogHeader>
-            
+
             <div className="py-4 space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase text-muted-foreground">Task Title *</Label>
-                <Input placeholder="e.g. Call to discuss pricing" value={editingTask.title} onChange={e => setEditingTask({...editingTask, title: e.target.value})} />
+                <Input placeholder="e.g. Call to discuss pricing" value={editingTask.title} onChange={e => setEditingTask({ ...editingTask, title: e.target.value })} />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
                   <UserPlus className="h-3 w-3" /> Assign To
                 </Label>
-                <Select value={editingTask.assignedTo || ""} onValueChange={val => setEditingTask({...editingTask, assignedTo: val})}>
+                <Select value={editingTask.assignedTo || ""} onValueChange={val => setEditingTask({ ...editingTask, assignedTo: val })}>
                   <SelectTrigger><SelectValue placeholder="Select team member" /></SelectTrigger>
                   <SelectContent><SelectItem value="placeholder-1">Select Member...</SelectItem></SelectContent>
                 </Select>
@@ -291,7 +297,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" selected={editingTask.dueAt ? new Date(editingTask.dueAt) : undefined} onSelect={date => setEditingTask({...editingTask, dueAt: date?.toISOString()})} />
+                      <Calendar mode="single" selected={editingTask.dueAt ? new Date(editingTask.dueAt) : undefined} onSelect={date => setEditingTask({ ...editingTask, dueAt: date?.toISOString() })} />
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -304,7 +310,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold uppercase text-muted-foreground">Priority</Label>
-                  <Select value={editingTask.priority} onValueChange={v => setEditingTask({...editingTask, priority: v})}>
+                  <Select value={editingTask.priority} onValueChange={v => setEditingTask({ ...editingTask, priority: v })}>
                     <SelectTrigger><SelectValue placeholder="Select Priority" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Low</SelectItem>
@@ -315,7 +321,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold uppercase text-muted-foreground">Type</Label>
-                  <Select value={editingTask.type} onValueChange={v => setEditingTask({...editingTask, type: v})}>
+                  <Select value={editingTask.type} onValueChange={v => setEditingTask({ ...editingTask, type: v })}>
                     <SelectTrigger><SelectValue placeholder="Select Type" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="call">Call</SelectItem>
@@ -329,7 +335,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
 
               <div className="grid gap-2">
                 <Label className="text-xs font-bold uppercase text-muted-foreground">Notes / Description</Label>
-                <Textarea placeholder="Enter specific details..." value={editingTask.description || ""} onChange={e => setEditingTask({...editingTask, description: e.target.value})} className="h-24 resize-none" />
+                <Textarea placeholder="Enter specific details..." value={editingTask.description || ""} onChange={e => setEditingTask({ ...editingTask, description: e.target.value })} className="h-24 resize-none" />
               </div>
             </div>
 
@@ -353,7 +359,7 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
               </AlertDialog>
 
               <Button onClick={() => handleAction('update')} disabled={loading} className="px-8 font-bold cursor-pointer">
-                {loading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />} 
+                {loading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 SAVE CHANGES
               </Button>
             </DialogFooter>
