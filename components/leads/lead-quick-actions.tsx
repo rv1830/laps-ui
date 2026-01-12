@@ -9,7 +9,7 @@ import {
   Trash2, Loader2, MessageSquarePlus, CheckSquare, PlusCircle 
 } from "lucide-react"
 import { leadService } from "@/services/lead"
-import { taskService } from "@/services/task" // New Service
+import { taskService, type CreateTaskData } from "@/services/task" // CreateTaskData import kiya
 import { toast } from "sonner"
 import {
   AlertDialog,
@@ -25,14 +25,23 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function LeadQuickActions({ lead }: { lead: any }) {
   const params = useParams()
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isTaskLoading, setIsTaskLoading] = useState(false)
-  const [taskTitle, setTaskTitle] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  
+  // FIX: Priority ko explicitly type assign kiya
+  const [taskData, setTaskData] = useState({
+    title: "",
+    description: "",
+    priority: "medium" as "low" | "medium" | "high", 
+    type: "follow_up",
+    dueAt: ""
+  })
   
   const workspaceId = params.workspaceId as string
 
@@ -52,20 +61,26 @@ export function LeadQuickActions({ lead }: { lead: any }) {
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!taskTitle.trim()) return
+    if (!taskData.title.trim()) return
     
     try {
       setIsTaskLoading(true)
-      await taskService.createTask(workspaceId, {
+      
+      // Payload ko explicitly cast kiya taaki TS error na de
+      const payload: CreateTaskData = {
         leadId: lead.id,
-        title: taskTitle,
-        priority: "medium",
-        type: "follow_up"
-      })
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority,
+        type: taskData.type,
+        dueAt: taskData.dueAt
+      }
+
+      await taskService.createTask(workspaceId, payload)
       toast.success("Task created successfully")
-      setTaskTitle("")
+      setTaskData({ title: "", description: "", priority: "medium", type: "follow_up", dueAt: "" })
       setIsDialogOpen(false)
-      router.refresh() // Timeline and task list refresh karne ke liye
+      router.refresh()
     } catch (error) {
       toast.error("Failed to create task")
     } finally {
@@ -82,31 +97,64 @@ export function LeadQuickActions({ lead }: { lead: any }) {
       </CardHeader>
       <CardContent className="p-3 grid grid-cols-1 gap-2">
         
-        {/* ADD TASK DIALOG */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" className="w-full justify-start gap-3 h-10 font-medium hover:bg-primary/5 hover:text-primary border-dashed">
               <CheckSquare className="h-4 w-4 text-primary" /> Add Task
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px]">
             <form onSubmit={handleCreateTask}>
               <DialogHeader>
-                <DialogTitle className="uppercase italic font-black tracking-tighter">New Task for {lead.fullName}</DialogTitle>
+                <DialogTitle className="uppercase italic font-black tracking-tighter text-primary">New Task for {lead.fullName}</DialogTitle>
               </DialogHeader>
               <div className="py-4 space-y-4">
                 <div className="space-y-2">
-                  <Label>Task Title</Label>
+                  <Label>Title *</Label>
                   <Input 
                     placeholder="e.g. Call to discuss pricing" 
-                    value={taskTitle} 
-                    onChange={(e) => setTaskTitle(e.target.value)}
+                    value={taskData.title} 
+                    onChange={(e) => setTaskData({...taskData, title: e.target.value})}
                     required
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Input 
+                    placeholder="Additional details..." 
+                    value={taskData.description} 
+                    onChange={(e) => setTaskData({...taskData, description: e.target.value})}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Priority</Label>
+                    <Select 
+                      value={taskData.priority} 
+                      onValueChange={(val: "low" | "medium" | "high") => setTaskData({...taskData, priority: val})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Due Date</Label>
+                    <Input 
+                      type="datetime-local" 
+                      value={taskData.dueAt} 
+                      onChange={(e) => setTaskData({...taskData, dueAt: e.target.value})}
+                    />
+                  </div>
+                </div>
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={isTaskLoading}>
+                <Button type="submit" disabled={isTaskLoading} className="w-full">
                   {isTaskLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
                   Create Task
                 </Button>
