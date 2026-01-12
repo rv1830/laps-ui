@@ -336,14 +336,14 @@ export function LeadDetailTabs({ activities: initialActivities }: { activities: 
             <DialogFooter className="flex justify-between border-t pt-4 gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 cursor-pointer">
+                  <Button variant="ghost" size="sm" disabled={loading} className="text-destructive hover:bg-destructive/10 cursor-pointer">
                     <Trash2 className="h-4 w-4 mr-2" /> Delete
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Task?</AlertDialogTitle>
-                    <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>This will permanently delete this task. This action cannot be undone.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
