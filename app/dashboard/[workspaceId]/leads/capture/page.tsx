@@ -14,7 +14,8 @@ import {
   LayoutGrid,
   Sun,
   Moon,
-  Monitor
+  Monitor,
+  Smartphone,
 } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -25,7 +26,7 @@ import { cn } from "@/lib/utils"
 import { SurveyAccelerator } from "./_components/survey-accelerator"
 import { TrackingLinkModule } from "./_components/tracking-link-module"
 import { WebhookEndpoint } from "./_components/webhook-endpoint"
-
+import { BioLinkAccelerator } from "./_components/bio-link-accelerator"
 export default function LeadCapturePage() {
   const params = useParams()
   const router = useRouter()
@@ -107,6 +108,7 @@ export default function LeadCapturePage() {
                   { value: "surveys", label: "Survey Builder", icon: Target },
                   { value: "links", label: "Tracking Links", icon: Link2 },
                   { value: "webhook", label: "Inbound API", icon: Terminal },
+                  { value: "bio", label: "Bio-Links", icon: Smartphone },
                 ].map((tab) => (
                   <TabsTrigger 
                     key={tab.value}
@@ -123,6 +125,10 @@ export default function LeadCapturePage() {
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000 ease-out">
               <TabsContent value="surveys" className="mt-0 outline-none focus:ring-0">
                 <SurveyAccelerator />
+              </TabsContent>
+
+              <TabsContent value="bio">
+                <BioLinkAccelerator />
               </TabsContent>
 
               <TabsContent value="links" className="mt-0 outline-none focus:ring-0">
