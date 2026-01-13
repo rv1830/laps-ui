@@ -3,12 +3,21 @@
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Check, ChevronRight, Timer, Users, Zap, MousePointer2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ChevronRight, Timer, Zap, MousePointer2, CheckSquare, ArrowRight } from "lucide-react"
+import { Question } from "./survey-accelerator"
 
-export function InteractivePreview({ questions, isTypeform }: { questions: any[], isTypeform: boolean }) {
+export function InteractivePreview({ questions, isTypeform }: { questions: Question[], isTypeform: boolean }) {
   const [current, setCurrent] = useState(0)
   const [timeLeft, setTimeLeft] = useState(900)
+
+  // Reset current question if questions list changes and current is out of bounds
+  useEffect(() => {
+    if (current >= questions.length) {
+      setCurrent(Math.max(0, questions.length - 1))
+    }
+  }, [questions.length, current])
 
   useEffect(() => {
     const timer = setInterval(() => setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0)), 1000)
@@ -21,76 +30,109 @@ export function InteractivePreview({ questions, isTypeform }: { questions: any[]
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`
   }
 
-  // --- STANDARD MODE ---
+  // --- STANDARD MODE (The Scrollable Form) ---
   if (!isTypeform) {
     return (
-      <Card className="relative p-8 border-border bg-card text-card-foreground shadow-2xl h-[500px] overflow-hidden rounded-[2.5rem] group transition-all duration-500">
-        <div className="absolute -top-24 -right-24 h-48 w-48 bg-primary/10 blur-[100px] rounded-full group-hover:bg-primary/20 transition-all" />
-        
-        <div className="space-y-6 relative z-10">
-          <div className="flex items-center justify-between border-b border-border pb-5">
-            <div className="flex items-center gap-3">
-               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                  <Zap className="h-4 w-4 text-primary-foreground fill-current" />
-               </div>
-               <h3 className="text-sm font-black text-foreground tracking-tighter uppercase italic">Standard Funnel</h3>
-            </div>
-            <div className="flex items-center gap-2 text-primary font-black text-[11px] bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
+      <Card className="rounded-[2.5rem] border-[6px] border-secondary bg-background min-h-[500px] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+        <div className="p-8 flex-1 space-y-8 overflow-y-auto max-h-[500px] custom-scrollbar">
+          <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
+             <div className="flex items-center gap-2 text-primary font-black text-[10px] bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
               <Timer className="h-3.5 w-3.5" /> {formatTime(timeLeft)}
             </div>
+            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Static Mode</span>
           </div>
 
-          <div className="space-y-5 max-h-[280px] overflow-y-auto pr-3 custom-scrollbar">
-            {questions.map((q, i) => (
-              <div key={i} className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-secondary text-secondary-foreground border border-border text-[9px] font-black">{i + 1}</span>
-                  {q.label}
-                </label>
-                <div className="h-12 w-full bg-secondary/30 border border-input rounded-2xl transition-all focus-within:border-primary" />
-              </div>
-            ))}
-          </div>
+          {questions.map((q, i) => (
+            <div key={q.id} className="space-y-4 animate-in fade-in slide-in-from-bottom-3">
+              <label className="text-sm font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary text-foreground border border-border text-[10px] font-black">{i + 1}</span>
+                {q.label}
+              </label>
 
-          <Button className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-primary/20 rounded-2xl gap-2 active:scale-95 transition-all mt-2">
-            Claim Offer Now <ChevronRight className="h-4 w-4" />
+              {q.type === 'text' && <Input placeholder="Type your response..." className="h-14 rounded-2xl bg-secondary/20" />}
+              {q.type === 'number' && <Input type="number" placeholder="0.00" className="h-14 rounded-2xl bg-secondary/20" />}
+              
+              {(q.type === 'radio' || q.type === 'multiselect') && (
+                <div className="grid gap-2">
+                  {q.options?.map(opt => (
+                    <div key={opt} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-secondary hover:border-primary/40 cursor-pointer transition-all">
+                      <div className={q.type === 'radio' ? "h-5 w-5 rounded-full border-2 border-muted" : "h-5 w-5 rounded-md border-2 border-muted"} />
+                      <span className="font-bold text-sm text-foreground/80">{opt}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {q.type === 'dropdown' && (
+                <Select>
+                  <SelectTrigger className="h-14 rounded-2xl bg-secondary/20 border-border font-bold">
+                    <SelectValue placeholder="Choose an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {q.options?.map(opt => (
+                      <SelectItem key={opt} value={opt} className="font-bold">{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="p-8 bg-secondary/10 border-t border-border">
+          <Button className="w-full h-14 rounded-2xl font-black uppercase tracking-widest gap-2">
+            Submit Lead Info <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </Card>
     )
   }
 
-  // --- INTERACTIVE MODE (Light/Dark Compatible) ---
+  // --- INTERACTIVE MODE (Typeform Feel) ---
+  const activeQuestion = questions[current]
+
   return (
-    <div className="bg-background border-[6px] border-card rounded-[3rem] h-[500px] flex flex-col relative shadow-2xl overflow-hidden group transition-colors duration-500">
+    <div className="bg-background border-[6px] border-secondary rounded-[3rem] h-[550px] flex flex-col relative shadow-2xl overflow-hidden group transition-all duration-500 animate-in fade-in zoom-in-95">
       
       {/* Progress Bar */}
       <div className="absolute top-0 left-0 w-full h-1.5 bg-muted">
         <div 
-          className="h-full bg-primary transition-all duration-1000 ease-in-out shadow-[0_0_20px_rgba(var(--primary),0.8)]" 
+          className="h-full bg-primary transition-all duration-700 ease-in-out shadow-[0_0_20px_rgba(var(--primary),0.8)]" 
           style={{ width: `${((current + 1) / questions.length) * 100}%` }}
         />
       </div>
 
-      <div className="flex-1 flex flex-col justify-center px-12 space-y-12">
+      <div className="flex-1 flex flex-col justify-center px-8 lg:px-12 space-y-12">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black italic text-xs shadow-lg shadow-primary/30">Q{current + 1}</span>
+             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black italic text-xs shadow-lg shadow-primary/30 animate-bounce">Q{current + 1}</span>
              <div className="h-px flex-1 bg-border" />
           </div>
-          <h2 className="text-3xl font-black text-foreground leading-[1.1] tracking-tighter max-w-sm">
-            {questions[current]?.label}
+          <h2 className="text-2xl lg:text-3xl font-black text-foreground leading-[1.1] tracking-tighter max-w-sm">
+            {activeQuestion?.label}
           </h2>
         </div>
         
         <div className="space-y-8">
           <div className="relative group/input">
-             <input 
+            {activeQuestion?.type === 'text' || activeQuestion?.type === 'number' ? (
+              <input 
                 autoFocus
-                className="w-full bg-transparent border-b-4 border-muted py-6 text-3xl font-bold text-foreground outline-none focus:border-primary transition-all duration-500 placeholder:text-muted-foreground/30"
+                type={activeQuestion.type}
+                className="w-full bg-transparent border-b-4 border-muted py-6 text-2xl lg:text-3xl font-bold text-foreground outline-none focus:border-primary transition-all duration-500 placeholder:text-muted-foreground/30"
                 placeholder="Type here..."
+                key={activeQuestion.id} // Ensures refocus on change
               />
-              <MousePointer2 className="absolute -bottom-10 right-0 h-5 w-5 text-primary animate-bounce opacity-50" />
+            ) : (
+              <div className="grid gap-3 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                {activeQuestion?.options?.map((opt, idx) => (
+                  <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-muted hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group/opt">
+                    <span className="h-7 w-7 rounded-lg bg-secondary flex items-center justify-center text-[10px] font-black group-hover/opt:bg-primary group-hover/opt:text-primary-foreground transition-colors uppercase">{String.fromCharCode(65 + idx)}</span>
+                    <span className="font-bold text-sm">{opt}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <MousePointer2 className="absolute -bottom-10 right-0 h-5 w-5 text-primary animate-pulse opacity-50" />
           </div>
           
           <div className="flex items-center gap-8 pt-4">
@@ -113,13 +155,13 @@ export function InteractivePreview({ questions, isTypeform }: { questions: any[]
       {/* Social Proof Bottom Bar */}
       <div className="p-6 bg-muted/30 backdrop-blur-xl border-t border-border flex justify-between items-center">
         <div className="flex items-center gap-2">
-           <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
+           <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)] animate-pulse" />
            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Logic Engine v2.5 Active</p>
         </div>
         <div className="flex -space-x-3">
           {[1,2,3,4].map(i => (
-            <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden">
-               <div className="w-full h-full bg-primary/10" />
+            <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-secondary flex items-center justify-center overflow-hidden">
+               <div className="w-full h-full bg-primary/20" />
             </div>
           ))}
         </div>

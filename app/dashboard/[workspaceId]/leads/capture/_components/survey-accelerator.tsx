@@ -14,23 +14,20 @@ import {
   Share2,
   Mail,
   Code,
-  Zap,
   Rocket,
   CheckCircle2,
   Target,
   ArrowRight,
-  Type,
-  Hash,
-  ChevronDown,
-  CheckSquare
+  Zap
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { InteractivePreview } from "./interactive-preview"
 
 // --- TYPES ---
-type QuestionType = 'text' | 'number' | 'radio' | 'dropdown' | 'multiselect';
+export type QuestionType = 'text' | 'number' | 'radio' | 'dropdown' | 'multiselect';
 
-interface Question {
+export interface Question {
   id: string;
   label: string;
   type: QuestionType;
@@ -78,8 +75,8 @@ export function SurveyAccelerator() {
   const publicUrl = `https://laps.io/s/${formId}`
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+    <div className="space-y-10 animate-in fade-in duration-700 p-6 lg:p-10 bg-background min-h-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start max-w-7xl mx-auto">
 
         {/* CONFIGURATION PANEL */}
         <div className="space-y-6">
@@ -109,14 +106,13 @@ export function SurveyAccelerator() {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-8 space-y-6">
+              <CardContent className="p-8 space-y-6 max-h-[600px] overflow-y-auto custom-scrollbar">
                 {questions.map((q, idx) => (
                   <div key={q.id} className="group relative animate-in slide-in-from-left-4 duration-300 border-b border-border/50 pb-6 last:border-0">
                     <div className="flex items-center justify-between mb-3 px-1">
                       <div className="flex items-center gap-3">
                         <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Step {idx + 1}</Label>
 
-                        {/* TYPE SELECTOR */}
                         <Select value={q.type} onValueChange={(val: QuestionType) => updateQuestion(q.id, { type: val, options: (val === 'radio' || val === 'dropdown' || val === 'multiselect') ? ["Option 1"] : [] })}>
                           <SelectTrigger className="h-6 w-28 text-[9px] uppercase font-bold rounded-full bg-secondary/50 border-none">
                             <SelectValue />
@@ -145,7 +141,6 @@ export function SurveyAccelerator() {
                         className="h-12 bg-secondary/20 border-border focus:border-primary focus:ring-primary/10 rounded-xl font-bold text-sm pl-4 transition-all"
                       />
 
-                      {/* OPTIONS EDITOR (For Radio/Dropdown) */}
                       {(q.type === 'radio' || q.type === 'dropdown' || q.type === 'multiselect') && (
                         <div className="grid grid-cols-1 gap-2 pl-4 border-l-2 border-primary/20 pt-1">
                           {q.options?.map((opt, optIdx) => (
@@ -196,7 +191,6 @@ export function SurveyAccelerator() {
             </Card>
           </div>
 
-          {/* PUBLISH STATUS */}
           {isPublished && (
             <Card className="border-primary/30 bg-primary/5 animate-in zoom-in-95 duration-500 rounded-[2.5rem] shadow-2xl shadow-primary/5">
               <CardContent className="p-8 space-y-5">
@@ -218,7 +212,7 @@ export function SurveyAccelerator() {
           )}
         </div>
 
-        {/* PREVIEW PANEL */}
+        {/* PREVIEW PANEL - Dynamic Switcher */}
         <div className="space-y-4 lg:sticky lg:top-24">
           <div className="flex items-center justify-between px-4">
             <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">
@@ -231,78 +225,12 @@ export function SurveyAccelerator() {
             </div>
           </div>
 
-          {/* INTERACTIVE PREVIEW INTERNAL COMPONENT */}
-          <Card className="rounded-[2.5rem] border-[6px] border-secondary bg-background min-h-[500px] shadow-2xl flex flex-col overflow-hidden">
-            <div className="p-8 flex-1 space-y-8 overflow-y-auto max-h-[600px]">
-              {questions.map((q) => (
-                <div key={q.id} className="space-y-4 animate-in fade-in slide-in-from-bottom-3">
-                  <Label className="text-xl font-black tracking-tight leading-tight block">{q.label}</Label>
-
-                  {/* Text Input */}
-                  {q.type === 'text' && (
-                    <Input placeholder="Type your response..." className="h-14 rounded-2xl bg-secondary/20 border-border focus:ring-primary/20" />
-                  )}
-
-                  {/* Number Input */}
-                  {q.type === 'number' && (
-                    <Input type="number" placeholder="0.00" className="h-14 rounded-2xl bg-secondary/20 border-border focus:ring-primary/20" />
-                  )}
-
-                  {/* Radio / Single Choice */}
-                  {q.type === 'radio' && (
-                    <div className="grid gap-2">
-                      {q.options?.map(opt => (
-                        <div key={opt} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-secondary hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all group">
-                          <div className="h-5 w-5 rounded-full border-2 border-muted-foreground group-hover:border-primary flex items-center justify-center">
-                            <div className="h-2 w-2 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                          <span className="font-bold text-sm text-foreground/80">{opt}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Multi Select Choice */}
-                  {q.type === 'multiselect' && (
-                    <div className="grid gap-2">
-                      {q.options?.map(opt => (
-                        <div key={opt} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-secondary hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all group">
-                          <div className="h-5 w-5 rounded-md border-2 border-muted-foreground group-hover:border-primary flex items-center justify-center">
-                            <CheckSquare className="h-3 w-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                          <span className="font-bold text-sm text-foreground/80">{opt}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Dropdown */}
-                  {q.type === 'dropdown' && (
-                    <Select>
-                      <SelectTrigger className="h-14 rounded-2xl bg-secondary/20 border-border font-bold">
-                        <SelectValue placeholder="Choose an option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {q.options?.map(opt => (
-                          <SelectItem key={opt} value={opt} className="font-bold">{opt}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="p-8 bg-secondary/10 border-t border-border">
-              <Button className="w-full h-14 rounded-2xl font-black uppercase tracking-widest gap-2">
-                Submit Lead Info <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </Card>
+          <InteractivePreview questions={questions} isTypeform={isTypeformMode} />
         </div>
       </div>
 
       {/* SHARE OPTIONS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
         {[
           { title: "Direct Link", icon: Share2, desc: "Bhejo leads ko social media par.", color: "bg-blue-500" },
           { title: "Email Snippet", icon: Mail, desc: "Paste inside email sequences.", color: "bg-primary" },
