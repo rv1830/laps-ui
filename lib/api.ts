@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'https://laps-backend-1.onrender.com/api', // Backend port
+  baseURL: 'http://localhost:3000/api', // Backend port
   withCredentials: true, // Zaroori hai cookies send/receive karne ke liye
   headers: {
     'Content-Type': 'application/json',
