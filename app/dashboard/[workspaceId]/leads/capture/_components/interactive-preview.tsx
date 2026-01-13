@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 export function InteractivePreview({ questions, isTypeform }: { questions: any[], isTypeform: boolean }) {
   const [current, setCurrent] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(900) // 15 min urgency timer
+  const [timeLeft, setTimeLeft] = useState(900)
 
   useEffect(() => {
     const timer = setInterval(() => setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0)), 1000)
@@ -21,11 +21,10 @@ export function InteractivePreview({ questions, isTypeform }: { questions: any[]
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`
   }
 
-  // --- STANDARD MODE (Dashboard Style) ---
+  // --- STANDARD MODE ---
   if (!isTypeform) {
     return (
       <Card className="relative p-8 border-border bg-card text-card-foreground shadow-2xl h-[500px] overflow-hidden rounded-[2.5rem] group transition-all duration-500">
-        {/* Subtle background glow */}
         <div className="absolute -top-24 -right-24 h-48 w-48 bg-primary/10 blur-[100px] rounded-full group-hover:bg-primary/20 transition-all" />
         
         <div className="space-y-6 relative z-10">
@@ -48,7 +47,7 @@ export function InteractivePreview({ questions, isTypeform }: { questions: any[]
                   <span className="flex h-5 w-5 items-center justify-center rounded-md bg-secondary text-secondary-foreground border border-border text-[9px] font-black">{i + 1}</span>
                   {q.label}
                 </label>
-                <div className="h-12 w-full bg-secondary/50 border border-input rounded-2xl transition-all focus-within:border-primary" />
+                <div className="h-12 w-full bg-secondary/30 border border-input rounded-2xl transition-all focus-within:border-primary" />
               </div>
             ))}
           </div>
@@ -61,28 +60,25 @@ export function InteractivePreview({ questions, isTypeform }: { questions: any[]
     )
   }
 
-  // --- INTERACTIVE MODE (Neon Typeform Style) ---
+  // --- INTERACTIVE MODE (Light/Dark Compatible) ---
   return (
-    <div className="bg-black border-[6px] border-black rounded-[3rem] h-[500px] flex flex-col relative shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-hidden group">
+    <div className="bg-background border-[6px] border-card rounded-[3rem] h-[500px] flex flex-col relative shadow-2xl overflow-hidden group transition-colors duration-500">
       
-      {/* Neon Progress Bar */}
-      <div className="absolute top-0 left-0 w-full h-1.5 bg-neutral-900">
+      {/* Progress Bar */}
+      <div className="absolute top-0 left-0 w-full h-1.5 bg-muted">
         <div 
           className="h-full bg-primary transition-all duration-1000 ease-in-out shadow-[0_0_20px_rgba(var(--primary),0.8)]" 
           style={{ width: `${((current + 1) / questions.length) * 100}%` }}
         />
       </div>
 
-      {/* Social Proof Badge */}
-    
-
       <div className="flex-1 flex flex-col justify-center px-12 space-y-12">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black italic text-xs shadow-lg shadow-primary/30">Q{current + 1}</span>
-             <div className="h-px flex-1 bg-neutral-800" />
+             <div className="h-px flex-1 bg-border" />
           </div>
-          <h2 className="text-3xl font-black text-white leading-[1.1] tracking-tighter max-w-sm">
+          <h2 className="text-3xl font-black text-foreground leading-[1.1] tracking-tighter max-w-sm">
             {questions[current]?.label}
           </h2>
         </div>
@@ -91,7 +87,7 @@ export function InteractivePreview({ questions, isTypeform }: { questions: any[]
           <div className="relative group/input">
              <input 
                 autoFocus
-                className="w-full bg-transparent border-b-4 border-neutral-900 py-6 text-3xl font-bold text-white outline-none focus:border-primary transition-all duration-500 placeholder:text-neutral-800"
+                className="w-full bg-transparent border-b-4 border-muted py-6 text-3xl font-bold text-foreground outline-none focus:border-primary transition-all duration-500 placeholder:text-muted-foreground/30"
                 placeholder="Type here..."
               />
               <MousePointer2 className="absolute -bottom-10 right-0 h-5 w-5 text-primary animate-bounce opacity-50" />
@@ -102,12 +98,12 @@ export function InteractivePreview({ questions, isTypeform }: { questions: any[]
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-black h-16 px-12 rounded-[1.5rem] shadow-2xl shadow-primary/40 text-sm uppercase tracking-widest transform active:scale-95 transition-all group/btn"
               onClick={() => current < questions.length - 1 && setCurrent(current + 1)}
             >
-              {current === questions.length - 1 ? "Complete Flow" : "Continue"} 
+              {current === questions.length - 1 ? "Complete" : "Continue"} 
               <Zap className="ml-3 h-5 w-5 fill-current group-hover/btn:animate-bounce" />
             </Button>
             <div className="hidden sm:block">
-               <p className="text-[9px] text-neutral-500 font-black uppercase tracking-[0.2em] leading-none">
-                 Press <kbd className="text-white bg-neutral-900 px-2 py-1 rounded border border-neutral-800 mx-1 font-mono uppercase">Enter</kbd>
+               <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] leading-none">
+                 Press <kbd className="text-foreground bg-muted px-2 py-1 rounded border border-border mx-1 font-mono uppercase">Enter</kbd>
                </p>
             </div>
           </div>
@@ -115,14 +111,14 @@ export function InteractivePreview({ questions, isTypeform }: { questions: any[]
       </div>
 
       {/* Social Proof Bottom Bar */}
-      <div className="p-6 bg-black/50 backdrop-blur-xl border-t border-white/5 flex justify-between items-center">
+      <div className="p-6 bg-muted/30 backdrop-blur-xl border-t border-border flex justify-between items-center">
         <div className="flex items-center gap-2">
            <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
-           <p className="text-[9px] font-black text-neutral-500 uppercase tracking-widest">Logic Engine v2.5 Active</p>
+           <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Logic Engine v2.5 Active</p>
         </div>
         <div className="flex -space-x-3">
           {[1,2,3,4].map(i => (
-            <div key={i} className="w-8 h-8 rounded-full border-2 border-black bg-neutral-900 flex items-center justify-center overflow-hidden">
+            <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden">
                <div className="w-full h-full bg-primary/10" />
             </div>
           ))}
