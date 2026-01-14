@@ -17,6 +17,7 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  ChevronLeft, // Added for toggle icon
   Package,
   CheckSquare,
   Building2,
@@ -141,6 +142,7 @@ export function AppSidebar() {
   const router = useRouter()
   const workspaceId = params.workspaceId as string
   
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [openSections, setOpenSections] = useState<string[]>(["Leads", "Pipeline", "Automation"])
   const [userData, setUserData] = useState<any>(null)
   const [workspaces, setWorkspaces] = useState<any[]>([])
@@ -202,23 +204,39 @@ export function AppSidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-[280px] flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-2xl relative z-40">
+    <aside className={cn(
+      "flex h-screen flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-2xl relative z-40 transition-all duration-300",
+      isCollapsed ? "w-[80px]" : "w-[280px]"
+    )}>
       <div className="p-6">
-        <div className="flex items-center gap-3.5 mb-8 select-none">
-          <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent shadow-[0_0_20px_rgba(var(--primary),0.3)] ai-glow-subtle">
-            <Zap className="h-6 w-6 text-primary-foreground fill-primary-foreground" />
-          </div>
-          <div>
-            <span className="text-xl pr-1 font-black tracking-tighter bg-gradient-to-r from-foreground to-foreground/90 bg-clip-text text-transparent italic text-nowrap">
-              LAPS
-            </span>
-            <div className="flex items-center gap-1.5">
-              <div className="flex h-4 w-4 items-center justify-center rounded-sm bg-accent/20">
-                <Bot className="h-2.5 w-2.5 text-accent" />
+        <div className="flex items-center justify-between mb-8 select-none">
+          {!isCollapsed && (
+            <div className="flex items-center gap-3.5">
+              <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent shadow-[0_0_20px_rgba(var(--primary),0.3)] ai-glow-subtle">
+                <Zap className="h-6 w-6 text-primary-foreground fill-primary-foreground" />
               </div>
-              <span className="text-[9px] text-accent tracking-[0.1em] uppercase">AI SALES ENGINE</span>
+              <div>
+                <span className="text-xl pr-1 font-black tracking-tighter bg-gradient-to-r from-foreground to-foreground/90 bg-clip-text text-transparent italic text-nowrap">
+                  LAPS
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex h-4 w-4 items-center justify-center rounded-sm bg-accent/20">
+                    <Bot className="h-2.5 w-2.5 text-accent" />
+                  </div>
+                  <span className="text-[9px] text-accent tracking-[0.1em] uppercase">AI SALES ENGINE</span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+          
+          <Button 
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            variant="ghost" 
+            size="icon" 
+            className={cn("h-8 w-8 rounded-lg border border-primary/20 text-primary hover:bg-primary/10 transition-all", isCollapsed && "mx-auto")}
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
         </div>
 
         {/* Workspace Switcher with Skeleton Loader */}
@@ -226,30 +244,37 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-between h-auto py-4 px-4 bg-sidebar-accent/40 hover:bg-sidebar-accent border border-sidebar-border/60 text-sidebar-accent-foreground rounded-2xl transition-all duration-300 group cursor-pointer"
+              className={cn(
+                "w-full justify-between h-auto py-4 px-4 bg-sidebar-accent/40 hover:bg-sidebar-accent border border-sidebar-border/60 text-sidebar-accent-foreground rounded-2xl transition-all duration-300 group cursor-pointer",
+                isCollapsed && "px-0 justify-center h-12 w-12 mx-auto"
+              )}
             >
-              <div className="flex items-center gap-3 overflow-hidden w-full">
+              <div className={cn("flex items-center gap-3 overflow-hidden", !isCollapsed && "w-full")}>
                 {isLoading ? (
                   <div className="flex items-center gap-3 w-full">
                     <Skeleton className="h-9 w-9 shrink-0 rounded-xl bg-sidebar-border" />
-                    <div className="space-y-1.5 flex-1">
-                      <Skeleton className="h-4 w-24 bg-sidebar-border" />
-                      <Skeleton className="h-3 w-12 bg-sidebar-border" />
-                    </div>
+                    {!isCollapsed && (
+                      <div className="space-y-1.5 flex-1">
+                        <Skeleton className="h-4 w-24 bg-sidebar-border" />
+                        <Skeleton className="h-3 w-12 bg-sidebar-border" />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-primary/10 to-accent/10 text-primary border border-primary/20 group-hover:scale-110 transition-transform">
                       <Building2 className="h-5 w-5" />
                     </div>
-                    <div className="text-left overflow-hidden">
-                      <p className="text-sm truncate tracking-tight">{currentWorkspace?.name}</p>
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{currentWorkspace?.role}</p>
-                    </div>
+                    {!isCollapsed && (
+                      <div className="text-left overflow-hidden">
+                        <p className="text-sm truncate tracking-tight">{currentWorkspace?.name}</p>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{currentWorkspace?.role}</p>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
-              {!isLoading && <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />}
+              {!isLoading && !isCollapsed && <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />}
             </Button>
           </DropdownMenuTrigger>
           
@@ -357,24 +382,28 @@ export function AppSidebar() {
               isActive={isActive}
               isOpen={openSections.includes(item.title)}
               onToggle={() => toggleSection(item.title)}
+              isCollapsed={isCollapsed}
             />
           ))}
         </div>
 
-        <div className="pt-8 border-t border-sidebar-border/30">
-          <p className="px-4 mb-4 text-[10px] text-muted-foreground uppercase tracking-[0.2em] opacity-60">System Config</p>
-          <div className="space-y-1.5">
-            {getSettingsItems(workspaceId).map((item) => (
-              <NavItemComponent
-                key={item.href}
-                item={item}
-                isActive={isActive}
-                isOpen={openSections.includes(item.title)}
-                onToggle={() => toggleSection(item.title)}
-              />
-            ))}
+        {!isCollapsed && (
+          <div className="pt-8 border-t border-sidebar-border/30">
+            <p className="px-4 mb-4 text-[10px] text-muted-foreground uppercase tracking-[0.2em] opacity-60">System Config</p>
+            <div className="space-y-1.5">
+              {getSettingsItems(workspaceId).map((item) => (
+                <NavItemComponent
+                  key={item.href}
+                  item={item}
+                  isActive={isActive}
+                  isOpen={openSections.includes(item.title)}
+                  onToggle={() => toggleSection(item.title)}
+                  isCollapsed={isCollapsed}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </nav>
 
       <div className="p-4 bg-sidebar-accent/20 border-t border-sidebar-border/30 mt-auto">
@@ -382,7 +411,10 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-4 h-auto py-3.5 px-3 hover:bg-sidebar-accent rounded-2xl border border-transparent hover:border-sidebar-border/50 transition-all cursor-pointer group"
+              className={cn(
+                "w-full justify-start gap-4 h-auto py-3.5 px-3 hover:bg-sidebar-accent rounded-2xl border border-transparent hover:border-sidebar-border/50 transition-all cursor-pointer group",
+                isCollapsed && "px-0 justify-center w-12 h-12 mx-auto"
+              )}
             >
               <div className="relative">
                 <Avatar className="h-11 w-11 border-2 border-primary/20 group-hover:border-primary/50 transition-all">
@@ -393,13 +425,15 @@ export function AppSidebar() {
                 </Avatar>
                 <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-green-500 border-[3px] border-sidebar shadow-sm" />
               </div>
-              <div className="text-left flex-1 min-w-0">
-                <p className="text-sm truncate group-hover:text-primary transition-colors">{userData?.firstName} {userData?.lastName}</p>
-                <p className="text-[10px] text-muted-foreground truncate font-bold opacity-70">{userData?.email}</p>
-              </div>
+              {!isCollapsed && (
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-sm truncate group-hover:text-primary transition-colors">{userData?.firstName} {userData?.lastName}</p>
+                  <p className="text-[10px] text-muted-foreground truncate font-bold opacity-70">{userData?.email}</p>
+                </div>
+              )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" sideOffset={12} className="w-64 p-2 rounded-2xl shadow-2xl border-sidebar-border">
+          <DropdownMenuContent align="end" side={isCollapsed ? "right" : "top"} sideOffset={12} className="w-64 p-2 rounded-2xl shadow-2xl border-sidebar-border">
             <DropdownMenuLabel className="px-3 py-2 text-xs text-muted-foreground uppercase opacity-70">My Account</DropdownMenuLabel>
             <DropdownMenuSeparator className="opacity-50" />
             <Link href={`/dashboard/${workspaceId}/settings/profile`} className="cursor-pointer">
@@ -421,10 +455,42 @@ export function AppSidebar() {
   )
 }
 
-function NavItemComponent({ item, isActive, isOpen, onToggle }: any) {
+function NavItemComponent({ item, isActive, isOpen, onToggle, isCollapsed }: any) {
   const Icon = item.icon
   const hasChildren = item.children && item.children.length > 0
   const active = isActive(item.href)
+
+  if (isCollapsed) {
+    return (
+      <div className="flex justify-center w-full py-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "h-12 w-12 p-0 flex items-center justify-center rounded-xl transition-all",
+                active && "bg-sidebar-accent/60 text-primary border border-primary/20"
+              )}
+            >
+              <Icon className={cn("h-5 w-5", active ? "text-primary" : "text-muted-foreground")} />
+            </Button>
+          </DropdownMenuTrigger>
+          {hasChildren && (
+            <DropdownMenuContent side="right" sideOffset={10} className="w-48 p-2 rounded-xl bg-popover/95 backdrop-blur-xl">
+               <DropdownMenuLabel className="text-[10px] uppercase opacity-50 px-3 py-1">{item.title}</DropdownMenuLabel>
+               {item.children.map((child: any) => (
+                 <Link key={child.href} href={child.href}>
+                    <DropdownMenuItem className={cn("cursor-pointer rounded-lg px-3 py-2 text-xs", isActive(child.href) && "text-primary bg-primary/5")}>
+                       {child.title}
+                    </DropdownMenuItem>
+                 </Link>
+               ))}
+            </DropdownMenuContent>
+          )}
+        </DropdownMenu>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-1">
