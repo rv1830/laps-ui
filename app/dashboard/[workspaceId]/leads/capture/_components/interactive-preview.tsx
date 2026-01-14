@@ -74,6 +74,7 @@ export function InteractivePreview({
                 <Input 
                   placeholder="Type your response..." 
                   className="h-14 rounded-2xl bg-secondary/20" 
+                  value={answers[q.label] || ""}
                   onChange={(e) => handleAnswerChange(q.label, e.target.value)}
                 />
               )}
@@ -82,6 +83,7 @@ export function InteractivePreview({
                   type="number" 
                   placeholder="0.00" 
                   className="h-14 rounded-2xl bg-secondary/20" 
+                  value={answers[q.label] || ""}
                   onChange={(e) => handleAnswerChange(q.label, e.target.value)}
                 />
               )}
@@ -102,7 +104,7 @@ export function InteractivePreview({
               )}
 
               {q.type === 'dropdown' && (
-                <Select onValueChange={(val) => handleAnswerChange(q.label, val)}>
+                <Select onValueChange={(val) => handleAnswerChange(q.label, val)} value={answers[q.label]}>
                   <SelectTrigger className="h-14 rounded-2xl bg-secondary/20 border-border font-bold">
                     <SelectValue placeholder="Choose an option" />
                   </SelectTrigger>

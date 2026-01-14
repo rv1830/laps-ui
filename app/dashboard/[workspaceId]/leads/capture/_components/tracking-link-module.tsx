@@ -1,24 +1,28 @@
 "use client"
 
 import { useState } from "react"
+import { useParams } from "next/navigation" // Workspace context ke liye add kiya
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Copy, Link2, ExternalLink, MousePointer2, CheckCircle2, Zap, Target, Globe, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { acceleratorService } from "@/services/accelerator" // Service Import kiya
+import { acceleratorService } from "@/services/accelerator" 
 
 export function TrackingLinkModule() {
+  const params = useParams()
+  const workspaceId = params.workspaceId as string
+
   const [targetUrl, setTargetUrl] = useState("")
   const [source, setSource] = useState("")
   const [campaign, setCampaign] = useState("")
   const [copied, setCopied] = useState(false)
-  const [isLoading, setIsLoading] = useState(false) // Loading state add kiya
+  const [isLoading, setIsLoading] = useState(false) 
 
   // Static ID generation for UI preview
   const previewSlug = Math.random().toString(36).substr(2, 6)
-  const generatedLink = `${window.location.origin}/go/${previewSlug}?src=${source || 'direct'}`
+  const generatedLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/go/${previewSlug}?src=${source || 'direct'}`
 
   const handleActivateAndCopy = async () => {
     if (!targetUrl) {
@@ -26,10 +30,15 @@ export function TrackingLinkModule() {
       return;
     }
 
+    if (!workspaceId) {
+      toast.error("Workspace context missing");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // API call to save tracking link configuration
-      await acceleratorService.save({
+      // API call fixed with workspaceId parameter
+      await acceleratorService.save(workspaceId, {
         name: campaign || `Link_${previewSlug}`,
         type: "TRACKING_LINK",
         slug: previewSlug,
@@ -41,7 +50,7 @@ export function TrackingLinkModule() {
         }
       });
 
-      // Link save hone ke baad clipboard mein copy karo
+      // Copy logic
       navigator.clipboard.writeText(generatedLink);
       setCopied(true);
       toast.success("Tracking Link Activated & Copied!");

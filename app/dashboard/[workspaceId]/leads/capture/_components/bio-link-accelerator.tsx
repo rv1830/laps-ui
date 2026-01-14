@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useParams } from "next/navigation" // Workspace context ke liye add kiya
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { 
@@ -13,13 +14,16 @@ import {
   Tablet,
   Zap,
   CheckCircle2,
-  Loader2 // Loader add kiya hai API sync ke liye
+  Loader2 
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { acceleratorService } from "@/services/accelerator" // Service import ki gayi hai
+import { acceleratorService } from "@/services/accelerator" 
 
 export function BioLinkAccelerator() {
+  const params = useParams()
+  const workspaceId = params.workspaceId as string
+
   const [links, setLinks] = useState([
     { id: "1", title: "Official Website", url: "https://laps.io" },
     { id: "2", title: "Join Community", url: "https://discord.gg/laps" }
@@ -27,7 +31,7 @@ export function BioLinkAccelerator() {
   
   // Device View State
   const [view, setView] = useState<"mobile" | "tablet" | "desktop">("mobile")
-  const [isDeploying, setIsDeploying] = useState(false) // API call tracking
+  const [isDeploying, setIsDeploying] = useState(false) 
 
   const addLink = () => {
     const newId = Math.random().toString(36).substr(2, 9)
@@ -43,11 +47,14 @@ export function BioLinkAccelerator() {
 
   // --- API INTEGRATION ---
   const handleDeploy = async () => {
+    if (!workspaceId) return toast.error("Workspace context missing");
+    
     setIsDeploying(true);
-    const slug = "bio_" + Math.random().toString(36).substr(2, 6); // Unique handle generate kiya
+    const slug = "bio_" + Math.random().toString(36).substr(2, 6); 
 
     try {
-      await acceleratorService.save({
+      // Service call fixed with workspaceId parameter
+      await acceleratorService.save(workspaceId, {
         name: "Bio-Link Hub",
         type: "BIO_LINK",
         slug: slug,
@@ -57,14 +64,11 @@ export function BioLinkAccelerator() {
         }
       });
 
-      const publicUrl = `${window.location.origin}/go/${slug}`;
+      const publicUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/go/${slug}`;
       toast.success("Bio-Link Hub Deployed Successfully!");
       
-      // Clipboard mein copy kar lo taaki user share kar sake
       navigator.clipboard.writeText(publicUrl);
       toast.info("Link copied to clipboard");
-      
-      // Naye tab mein open bhi kar dete hain view ke liye
       window.open(publicUrl, "_blank");
     } catch (error) {
       console.error(error);
