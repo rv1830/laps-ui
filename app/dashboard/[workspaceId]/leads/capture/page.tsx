@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { useTheme } from "next-themes"
 import { 
-  Zap, 
   Plus, 
   ChevronLeft, 
   Target, 
@@ -12,15 +10,13 @@ import {
   Terminal,
   Sparkles,
   LayoutGrid,
-  Sun,
-  Moon,
-  Monitor,
   Smartphone,
 } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import ThemeToggle from "@/components/ThemeToggle"
 
 // Modular Components Import
 import { SurveyAccelerator } from "./_components/survey-accelerator"
@@ -30,7 +26,6 @@ import { BioLinkAccelerator } from "./_components/bio-link-accelerator"
 export default function LeadCapturePage() {
   const params = useParams()
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const workspaceId = params.workspaceId as string
 
@@ -69,26 +64,7 @@ export default function LeadCapturePage() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* THEME SELECTOR - Pipeline Page Style */}
-          <div className="group relative flex items-center justify-center">
-            <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-border bg-background cursor-pointer z-20">
-              {theme === 'light' ? <Sun className="h-4 w-4 text-primary" /> : 
-               theme === 'dark' ? <Moon className="h-4 w-4 text-primary" /> : 
-               <Monitor className="h-4 w-4 text-primary" />}
-            </Button>
-
-            <div className="absolute top-0 right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:right-12 transition-all duration-300 ease-out flex bg-secondary/80 backdrop-blur-md p-1 rounded-full border border-border h-10 items-center gap-1 z-10">
-              <button onClick={() => setTheme('light')} className={cn("h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'light' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-                <Sun className="h-3.5 w-3.5" />
-              </button>
-              <button onClick={() => setTheme('dark')} className={cn("h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'dark' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-                <Moon className="h-3.5 w-3.5" />
-              </button>
-              <button onClick={() => setTheme('system')} className={cn("h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'system' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-                <Monitor className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
+          <ThemeToggle />
 
           <Button 
             className="h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-6 font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"

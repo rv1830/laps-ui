@@ -8,14 +8,14 @@ import { LeadSegments } from "@/components/leads/lead-segments"
 import { Button } from "@/components/ui/button"
 import {
   Plus, Upload, Download, Layers,
-  Moon, Sun, Monitor, ChevronRight, Sparkles,
+  ChevronRight, Sparkles,
   Bell, Calendar, FileText, Zap,
   Mail, Phone, Target, Settings, PanelLeftOpen
 } from "lucide-react"
 import Link from "next/link"
 import { leadService } from "@/services/lead"
 import { isToday, parseISO, subDays } from "date-fns"
-import { useTheme } from "next-themes"
+import ThemeToggle from "@/components/ThemeToggle" 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +36,6 @@ import { cn } from "@/lib/utils"
 export default function LeadsPage() {
   const params = useParams()
   const workspaceId = params.workspaceId as string
-  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   const [selectedSegment, setSelectedSegment] = useState("all")
@@ -62,7 +61,6 @@ export default function LeadsPage() {
       setLoading(true)
       const queryParams = { ...filters }
       
-      // Clean "all" values for backend
       Object.keys(queryParams).forEach(key => {
         if (queryParams[key] === "all") delete queryParams[key]
       })
@@ -76,7 +74,6 @@ export default function LeadsPage() {
     }
   }, [workspaceId, filters])
 
-  // Debounced API call effect
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchLeads()
@@ -122,12 +119,7 @@ export default function LeadsPage() {
             </Button>
           )}
 
-          <div className="hidden lg:flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <span>Workspace</span>
-            <ChevronRight className="h-4 w-4 opacity-50" />
-            <span className="text-foreground font-bold font-heading uppercase tracking-tighter">Leads</span>
-          </div>
-          <div className="hidden lg:block h-6 w-[1px] bg-border/60 mx-2" />
+          {/* New Clean Logo/Title Section */}
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
               <Layers className="h-5 w-5 text-white" />
@@ -142,27 +134,10 @@ export default function LeadsPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" className="hidden sm:flex gap-2 border-primary/20 hover:bg-primary/5 text-primary rounded-full px-4 transition-transform">
-            <Sparkles className="h-4 w-4" /> AI Assist
-          </Button>
+          
 
-          <div className="flex bg-secondary/50 p-1 rounded-full border border-border/40 relative w-[108px] h-9 items-center overflow-hidden">
-            <div
-              className={cn(
-                "absolute h-7 w-7 bg-background rounded-full shadow-md transition-all duration-300 ease-in-out border border-border/20",
-                theme === 'light' ? "translate-x-0" : theme === 'dark' ? "translate-x-[34px]" : "translate-x-[68px]"
-              )}
-            />
-            <button onClick={() => setTheme('light')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'light' ? "text-primary scale-110" : "text-muted-foreground")}>
-              <Sun className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => setTheme('dark')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'dark' ? "text-primary scale-110" : "text-muted-foreground")}>
-              <Moon className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => setTheme('system')} className={cn("z-10 flex-1 flex items-center justify-center", theme === 'system' ? "text-primary scale-110" : "text-muted-foreground")}>
-              <Monitor className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          {/* Premium Theme Toggle Integrated Here */}
+          <ThemeToggle />
 
           <div className="hidden md:flex items-center gap-1 bg-secondary/30 p-1 rounded-full border border-border/40">
             <Button variant="ghost" size="sm" className="rounded-full h-8 px-4 text-[11px] font-bold">
@@ -274,7 +249,7 @@ export default function LeadsPage() {
             apiResponse={leadsData}
             selectedSegment={selectedSegment}
             onSelectSegment={setSelectedSegment}
-            onClose={() => setIsSidebarOpen(false)} // Pass close function
+            onClose={() => setIsSidebarOpen(false)}
           />
         </div>
 

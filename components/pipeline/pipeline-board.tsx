@@ -14,9 +14,6 @@ import {
   Bell, 
   Sparkles, 
   Search, 
-  Moon, 
-  Sun, 
-  Monitor,
   MoreHorizontal,
   ArrowLeft,
   Zap,
@@ -39,6 +36,9 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 
+// AAPKE COMPONENT KA IMPORT
+import ThemeToggle from "@/components/ThemeToggle"
+
 export function PipelineBoard() {
   const { workspaceId } = useParams() as { workspaceId: string }
   const router = useRouter()
@@ -54,7 +54,6 @@ export function PipelineBoard() {
   const [hasMore, setHasMore] = useState(true)
   const [dragOverStage, setDragOverStage] = useState<string | null>(null)
 
-  // --- NEW CARD STATES (NO ALERTS) ---
   const [showCard, setShowCard] = useState<'create' | 'edit' | 'delete' | null>(null)
   const [targetStage, setTargetStage] = useState<any>(null)
   const [formName, setFormName] = useState("")
@@ -62,7 +61,6 @@ export function PipelineBoard() {
   
   const observer = useRef<IntersectionObserver | null>(null)
 
-  // Hydration safety
   useEffect(() => setMounted(true), [])
 
   const lastElementRef = useCallback((node: HTMLDivElement) => {
@@ -129,19 +127,17 @@ export function PipelineBoard() {
     }
   }
 
-  // --- REFRESH ACTION ---
   const handleRefresh = async () => {
-    setLoading(true); // START LOADER IMMEDIATELY
+    setLoading(true);
     const stagesData = await pipelineService.getStages(workspaceId)
     setStages(stagesData)
     await loadLeads(1, true)
   }
 
-  // --- CARD ACTIONS ---
   const executeAction = async () => {
     const type = showCard;
     setShowCard(null);
-    setLoading(true); // TRIGGER SKELETON IMMEDIATELY
+    setLoading(true);
     try {
       if (type === 'create') await pipelineService.createStage(workspaceId, { name: formName, color: formColor });
       if (type === 'edit') await pipelineService.updateStage(workspaceId, targetStage.id, { name: formName, color: formColor });
@@ -158,19 +154,13 @@ export function PipelineBoard() {
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background relative">
       
-      {/* --- PREMIUM ENHANCED HEADER --- */}
+      {/* --- HEADER --- */}
       <header className="flex items-center justify-between px-6 py-3 border-b bg-card/50 backdrop-blur-md sticky top-0 z-50">
         
         {/* Left Side: Back Arrow, Title & Stats */}
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-9 w-9 cursor-pointer" 
-            onClick={() => router.push(`/dashboard/${workspaceId}`)}
-          >
-            <ArrowLeft className="h-3 w-3 " />
-          </Button>
+        
+
           <div className="bg-primary/10 p-2.5 rounded-xl shadow-sm border border-primary/20">
             <Users className="h-5 w-5 text-primary" />
           </div>
@@ -188,10 +178,9 @@ export function PipelineBoard() {
           </div>
         </div>
 
-        {/* Right Side: Actions (With New Theme System) */}
+        {/* Right Side: Actions */}
         <div className="flex items-center gap-3">
           
-          {/* Search Bar (Restored) */}
           <div className="relative hidden md:block">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input 
@@ -205,40 +194,14 @@ export function PipelineBoard() {
 
           <div className="h-6 w-[1px] bg-border mx-1" />
 
-          {/* AI Insights Button (Restored) */}
-          <Button variant="outline" size="sm" className="gap-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary transition-all active:scale-95 font-bold uppercase text-[10px] tracking-tighter italic">
-            <Sparkles className="h-4 w-4 fill-primary/20" />
-            <span className="hidden sm:inline">AI Insights</span>
-          </Button>
+          {/* AAPKA THEME TOGGLE COMPONENT */}
+          <ThemeToggle />
 
-          {/* NEW THEME SELECTOR - HOVER SYSTEM (From Import Page) */}
-          <div className="group relative flex items-center justify-center">
-            <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 border-border bg-background/50 cursor-pointer z-20">
-              {theme === 'light' ? <Sun className="h-4 w-4 text-primary" /> : 
-               theme === 'dark' ? <Moon className="h-4 w-4 text-primary" /> : 
-               <Monitor className="h-4 w-4 text-primary" />}
-            </Button>
-
-            <div className="absolute top-0 right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:right-11 transition-all duration-300 ease-out flex bg-secondary/90 backdrop-blur-md p-1 rounded-full border border-border h-9 items-center gap-1 z-10">
-              <button onClick={() => setTheme('light')} className={cn("h-7 w-7 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'light' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-                <Sun className="h-3 w-3" />
-              </button>
-              <button onClick={() => setTheme('dark')} className={cn("h-7 w-7 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'dark' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-                <Moon className="h-3 w-3" />
-              </button>
-              <button onClick={() => setTheme('system')} className={cn("h-7 w-7 rounded-full flex items-center justify-center cursor-pointer transition-colors", theme === 'system' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-                <Monitor className="h-3 w-3" />
-              </button>
-            </div>
-          </div>
-
-          {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative h-9 w-9 hover:bg-muted transition-colors">
             <Bell className="h-4 w-4" />
             <span className="absolute top-2 right-2.5 h-2 w-2 bg-destructive rounded-full border-2 border-background" />
           </Button>
 
-          {/* Quick Add Button -> Map to ADD STAGE */}
           <Button 
             onClick={() => { setFormName(""); setFormColor("#3b82f6"); setShowCard('create'); }}
             size="sm" 
@@ -250,10 +213,9 @@ export function PipelineBoard() {
         </div>
       </header>
 
-      {/* --- BOARD CONTENT / SKELETON LOADER --- */}
+      {/* --- BOARD CONTENT --- */}
       <div className="flex-1 overflow-x-auto p-6 flex gap-6 items-start relative custom-scrollbar bg-muted/20">
         {loading ? (
-          // CARD TYPE SKELETON LOADER
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex flex-col w-80 min-w-[340px] gap-4">
               <div className="flex justify-between items-center px-1">
@@ -278,7 +240,6 @@ export function PipelineBoard() {
                 onDragOver={(e) => onDragOver(e, stage.id)}
                 onDrop={(e) => onDrop(e, stage.id)}
               >
-                {/* Stage Header */}
                 <div className="flex items-center justify-between mb-4 px-1">
                   <div className="flex items-center gap-2.5">
                     <div 
@@ -308,7 +269,6 @@ export function PipelineBoard() {
                   </div>
                 </div>
 
-                {/* Lead Cards Container */}
                 <div className={cn(
                     "flex-1 rounded-2xl p-3 space-y-3 overflow-y-auto bg-card/40 backdrop-blur-[2px] min-h-[500px] border-2 border-dashed border-transparent transition-all duration-200 shadow-inner",
                     dragOverStage === stage.id && "border-primary/40 bg-primary/5 scale-[1.01]"
@@ -317,7 +277,6 @@ export function PipelineBoard() {
                     <PipelineCard key={lead.id} lead={lead} workspaceId={workspaceId} />
                   ))}
                   
-                  {/* Infinite Scroll Sentinel */}
                   {stage.id === stages[stages.length - 1].id && (
                      <div ref={lastElementRef} className="h-20 w-full flex items-center justify-center">
                         {loadingMore && (
@@ -335,7 +294,7 @@ export function PipelineBoard() {
         )}
       </div>
 
-      {/* --- OVERLAY CARD COMPONENTS (NO ALERTS) --- */}
+      {/* --- OVERLAY MODALS --- */}
       {showCard && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4">
           <div className="bg-card w-full max-w-sm rounded-[2rem] shadow-2xl border border-border p-6 animate-in zoom-in-95 duration-200">
