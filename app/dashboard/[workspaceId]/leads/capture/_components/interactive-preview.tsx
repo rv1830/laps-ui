@@ -8,9 +8,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronRight, Timer, Zap, MousePointer2, CheckSquare, ArrowRight } from "lucide-react"
 import { Question } from "./survey-accelerator"
 
-export function InteractivePreview({ questions, isTypeform }: { questions: Question[], isTypeform: boolean }) {
+// Props mein onComplete function add kiya hai submission handle karne ke liye
+export function InteractivePreview({ 
+  questions, 
+  isTypeform, 
+  onComplete 
+}: { 
+  questions: Question[], 
+  isTypeform: boolean,
+  onComplete?: (responses: any) => void 
+}) {
   const [current, setCurrent] = useState(0)
   const [timeLeft, setTimeLeft] = useState(900)
+  const [answers, setAnswers] = useState<Record<string, any>>({}) // Answers store karne ke liye state
 
   // Reset current question if questions list changes and current is out of bounds
   useEffect(() => {
@@ -28,6 +38,17 @@ export function InteractivePreview({ questions, isTypeform }: { questions: Quest
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`
+  }
+
+  // Answer handle karne ka logic
+  const handleAnswerChange = (label: string, value: any) => {
+    setAnswers(prev => ({ ...prev, [label]: value }))
+  }
+
+  const handleFinalSubmit = () => {
+    if (onComplete) {
+      onComplete(answers)
+    }
   }
 
   // --- STANDARD MODE (The Scrollable Form) ---
@@ -49,13 +70,30 @@ export function InteractivePreview({ questions, isTypeform }: { questions: Quest
                 {q.label}
               </label>
 
-              {q.type === 'text' && <Input placeholder="Type your response..." className="h-14 rounded-2xl bg-secondary/20" />}
-              {q.type === 'number' && <Input type="number" placeholder="0.00" className="h-14 rounded-2xl bg-secondary/20" />}
+              {q.type === 'text' && (
+                <Input 
+                  placeholder="Type your response..." 
+                  className="h-14 rounded-2xl bg-secondary/20" 
+                  onChange={(e) => handleAnswerChange(q.label, e.target.value)}
+                />
+              )}
+              {q.type === 'number' && (
+                <Input 
+                  type="number" 
+                  placeholder="0.00" 
+                  className="h-14 rounded-2xl bg-secondary/20" 
+                  onChange={(e) => handleAnswerChange(q.label, e.target.value)}
+                />
+              )}
               
               {(q.type === 'radio' || q.type === 'multiselect') && (
                 <div className="grid gap-2">
                   {q.options?.map(opt => (
-                    <div key={opt} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-secondary hover:border-primary/40 cursor-pointer transition-all">
+                    <div 
+                      key={opt} 
+                      onClick={() => handleAnswerChange(q.label, opt)}
+                      className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer ${answers[q.label] === opt ? "border-primary bg-primary/5" : "border-secondary hover:border-primary/40"}`}
+                    >
                       <div className={q.type === 'radio' ? "h-5 w-5 rounded-full border-2 border-muted" : "h-5 w-5 rounded-md border-2 border-muted"} />
                       <span className="font-bold text-sm text-foreground/80">{opt}</span>
                     </div>
@@ -64,7 +102,7 @@ export function InteractivePreview({ questions, isTypeform }: { questions: Quest
               )}
 
               {q.type === 'dropdown' && (
-                <Select>
+                <Select onValueChange={(val) => handleAnswerChange(q.label, val)}>
                   <SelectTrigger className="h-14 rounded-2xl bg-secondary/20 border-border font-bold">
                     <SelectValue placeholder="Choose an option" />
                   </SelectTrigger>
@@ -79,7 +117,7 @@ export function InteractivePreview({ questions, isTypeform }: { questions: Quest
           ))}
         </div>
         <div className="p-8 bg-secondary/10 border-t border-border">
-          <Button className="w-full h-14 rounded-2xl font-black uppercase tracking-widest gap-2">
+          <Button onClick={handleFinalSubmit} className="w-full h-14 rounded-2xl font-black uppercase tracking-widest gap-2">
             Submit Lead Info <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
@@ -118,15 +156,33 @@ export function InteractivePreview({ questions, isTypeform }: { questions: Quest
               <input 
                 autoFocus
                 type={activeQuestion.type}
+                value={answers[activeQuestion.label] || ""}
+                onChange={(e) => handleAnswerChange(activeQuestion.label, e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    current < questions.length - 1 ? setCurrent(current + 1) : handleFinalSubmit()
+                  }
+                }}
                 className="w-full bg-transparent border-b-4 border-muted py-6 text-2xl lg:text-3xl font-bold text-foreground outline-none focus:border-primary transition-all duration-500 placeholder:text-muted-foreground/30"
                 placeholder="Type here..."
-                key={activeQuestion.id} // Ensures refocus on change
+                key={activeQuestion.id} 
               />
             ) : (
               <div className="grid gap-3 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                 {activeQuestion?.options?.map((opt, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-muted hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group/opt">
-                    <span className="h-7 w-7 rounded-lg bg-secondary flex items-center justify-center text-[10px] font-black group-hover/opt:bg-primary group-hover/opt:text-primary-foreground transition-colors uppercase">{String.fromCharCode(65 + idx)}</span>
+                  <div 
+                    key={idx} 
+                    onClick={() => {
+                      handleAnswerChange(activeQuestion.label, opt)
+                      setTimeout(() => {
+                        if (current < questions.length - 1) setCurrent(current + 1)
+                      }, 400)
+                    }}
+                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group/opt cursor-pointer ${answers[activeQuestion.label] === opt ? "border-primary bg-primary/5" : "border-muted hover:border-primary hover:bg-primary/5"}`}
+                  >
+                    <span className={`h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-colors uppercase ${answers[activeQuestion.label] === opt ? "bg-primary text-primary-foreground" : "bg-secondary group-hover/opt:bg-primary group-hover/opt:text-primary-foreground"}`}>
+                      {String.fromCharCode(65 + idx)}
+                    </span>
                     <span className="font-bold text-sm">{opt}</span>
                   </div>
                 ))}
@@ -138,7 +194,7 @@ export function InteractivePreview({ questions, isTypeform }: { questions: Quest
           <div className="flex items-center gap-8 pt-4">
             <Button 
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-black h-16 px-12 rounded-[1.5rem] shadow-2xl shadow-primary/40 text-sm uppercase tracking-widest transform active:scale-95 transition-all group/btn"
-              onClick={() => current < questions.length - 1 && setCurrent(current + 1)}
+              onClick={() => current < questions.length - 1 ? setCurrent(current + 1) : handleFinalSubmit()}
             >
               {current === questions.length - 1 ? "Complete" : "Continue"} 
               <Zap className="ml-3 h-5 w-5 fill-current group-hover/btn:animate-bounce" />
@@ -152,7 +208,6 @@ export function InteractivePreview({ questions, isTypeform }: { questions: Quest
         </div>
       </div>
 
-      {/* Social Proof Bottom Bar */}
       <div className="p-6 bg-muted/30 backdrop-blur-xl border-t border-border flex justify-between items-center">
         <div className="flex items-center gap-2">
            <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)] animate-pulse" />

@@ -18,11 +18,13 @@ import {
   CheckCircle2,
   Target,
   ArrowRight,
-  Zap
+  Zap,
+  Loader2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { InteractivePreview } from "./interactive-preview"
+import { acceleratorService } from "@/services/accelerator" // Service Import ki hai
 
 // --- TYPES ---
 export type QuestionType = 'text' | 'number' | 'radio' | 'dropdown' | 'multiselect';
@@ -37,6 +39,8 @@ export interface Question {
 export function SurveyAccelerator() {
   const [isTypeformMode, setIsTypeformMode] = useState(true)
   const [isPublished, setIsPublished] = useState(false)
+  const [isLoading, setIsLoading] = useState(false) // Loading state handle karne ke liye
+  const [activeSlug, setActiveSlug] = useState("")
 
   // Advanced Questions State
   const [questions, setQuestions] = useState<Question[]>([
@@ -71,8 +75,34 @@ export function SurveyAccelerator() {
     }))
   }
 
-  const formId = "acc_" + Math.random().toString(36).substr(2, 6)
-  const publicUrl = `https://laps.io/s/${formId}`
+  // --- API CALL (THE CORE) ---
+  const handlePublish = async () => {
+    setIsLoading(true);
+    const slug = "acc_" + Math.random().toString(36).substr(2, 6); // Unique slug generation
+    
+    try {
+      await acceleratorService.save({
+        name: "Survey Funnel - " + slug,
+        type: "SURVEY",
+        config: { 
+          questions, 
+          isTypeformMode 
+        },
+        slug: slug
+      });
+
+      setActiveSlug(slug);
+      setIsPublished(true);
+      toast.success("Accelerator Engine Published!");
+    } catch (error) {
+      toast.error("Cloud Sync Failed. Try again.");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const publicUrl = `${window.location.origin}/go/${activeSlug}` // Dynamic public URL
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 p-6 lg:p-10 bg-background min-h-screen">
@@ -181,10 +211,12 @@ export function SurveyAccelerator() {
                   </Button>
 
                   <Button
-                    onClick={() => setIsPublished(true)}
+                    onClick={handlePublish}
+                    disabled={isLoading}
                     className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95"
                   >
-                    <Rocket className="h-4 w-4 fill-current" /> Publish Flow
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4 fill-current" />}
+                    Publish Flow
                   </Button>
                 </div>
               </CardContent>

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -10,14 +11,27 @@ import { Copy, Webhook, CheckCircle2, ShieldCheck, Terminal, Code2, Zap, Braces 
 import { toast } from "sonner"
 
 export function WebhookEndpoint() {
-  const [webhookUrl] = useState("https://api.laps.io/webhooks/v1/workspace_abc123")
+  const params = useParams()
+  const workspaceId = params.workspaceId as string
+  
+  // Dynamic Webhook URL based on workspace context
+  const [webhookUrl] = useState(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.laps.io'}/webhooks/v1/${workspaceId}`)
   const [copied, setCopied] = useState(false)
+  const [secretCopied, setSecretCopied] = useState(false)
+  
+  // Dummy key for UI - ideally fetched from your workspace settings API
+  const [apiKey] = useState("laps_sk_live_" + Math.random().toString(36).substr(2, 10))
 
-  const handleCopy = (text: string) => {
+  const handleCopy = (text: string, type: 'url' | 'key') => {
     navigator.clipboard.writeText(text)
-    setCopied(true)
-    toast.success("Webhook URL Copied")
-    setTimeout(() => setCopied(false), 2000)
+    if (type === 'url') {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } else {
+      setSecretCopied(true)
+      setTimeout(() => setSecretCopied(false), 2000)
+    }
+    toast.success(`${type === 'url' ? 'Webhook URL' : 'API Key'} Copied`)
   }
 
   return (
@@ -63,7 +77,7 @@ export function WebhookEndpoint() {
               <Button 
                 variant="outline" 
                 className="h-16 px-10 gap-3 border-2 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground font-black tracking-tighter rounded-2xl transition-all active:scale-95"
-                onClick={() => handleCopy(webhookUrl)}
+                onClick={() => handleCopy(webhookUrl, 'url')}
               >
                 {copied ? <CheckCircle2 className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
                 {copied ? "COPIED" : "COPY GATEWAY URL"}
@@ -91,9 +105,9 @@ export function WebhookEndpoint() {
 {`{
   "name": "John Doe",
   "email": "john@example.com",
-  "source": "fb_campaign_q4",
+  "source": "webhook_import",
   "intent_score": 85,
-  "metadata": {
+  "customFields": {
     "plan": "Enterprise",
     "region": "NA"
   }
@@ -118,8 +132,21 @@ export function WebhookEndpoint() {
                     <p className="text-[11px] text-muted-foreground font-bold leading-relaxed">Require encrypted tokens for all inbound lead data pipelines.</p>
                   </div>
                 </div>
-                <div className="relative z-10">
-                  <Input value="laps_sk_live_9201938210" type="password" readOnly className="bg-background/50 border-border font-mono text-[10px] h-12 rounded-xl tracking-widest" />
+                <div className="relative z-10 flex gap-2">
+                  <Input 
+                    value={apiKey} 
+                    type="password" 
+                    readOnly 
+                    className="bg-background/50 border-border font-mono text-[10px] h-12 rounded-xl tracking-widest flex-1" 
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-12 w-12 rounded-xl border border-border"
+                    onClick={() => handleCopy(apiKey, 'key')}
+                  >
+                    {secretCopied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
                 </div>
               </div>
 

@@ -4,24 +4,54 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Copy, Link2, ExternalLink, MousePointer2, CheckCircle2, Zap, Target, Globe } from "lucide-react"
+import { Copy, Link2, ExternalLink, MousePointer2, CheckCircle2, Zap, Target, Globe, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { acceleratorService } from "@/services/accelerator" // Service Import kiya
 
 export function TrackingLinkModule() {
   const [targetUrl, setTargetUrl] = useState("")
   const [source, setSource] = useState("")
   const [campaign, setCampaign] = useState("")
   const [copied, setCopied] = useState(false)
+  const [isLoading, setIsLoading] = useState(false) // Loading state add kiya
 
-  // Generate a dynamic tracking link preview with neon logic
-  const generatedLink = `laps.io/l/${Math.random().toString(36).substr(2, 6)}?src=${source || 'direct'}`
+  // Static ID generation for UI preview
+  const previewSlug = Math.random().toString(36).substr(2, 6)
+  const generatedLink = `${window.location.origin}/go/${previewSlug}?src=${source || 'direct'}`
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(generatedLink)
-    setCopied(true)
-    toast.success("Tracking Link Copied!")
-    setTimeout(() => setCopied(false), 2000)
+  const handleActivateAndCopy = async () => {
+    if (!targetUrl) {
+      toast.error("Please enter a Target Destination URL");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // API call to save tracking link configuration
+      await acceleratorService.save({
+        name: campaign || `Link_${previewSlug}`,
+        type: "TRACKING_LINK",
+        slug: previewSlug,
+        config: {
+          targetUrl,
+          source: source || 'direct',
+          campaign: campaign || 'unnamed',
+          activeAt: new Date()
+        }
+      });
+
+      // Link save hone ke baad clipboard mein copy karo
+      navigator.clipboard.writeText(generatedLink);
+      setCopied(true);
+      toast.success("Tracking Link Activated & Copied!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to activate tracking path");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -114,13 +144,20 @@ export function TrackingLinkModule() {
               </div>
 
               <Button 
-                onClick={handleCopy}
+                onClick={handleActivateAndCopy}
+                disabled={isLoading}
                 className={cn(
                   "relative z-10 h-14 w-full max-w-[280px] gap-3 font-black text-[11px] uppercase tracking-widest rounded-2xl transition-all active:scale-95 shadow-2xl",
                   copied ? "bg-emerald-500 text-white shadow-emerald-500/20" : "bg-primary text-primary-foreground shadow-primary/30"
                 )}
               >
-                {copied ? <CheckCircle2 className="h-5 w-5" /> : <Zap className="h-5 w-5 fill-current animate-pulse" />}
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : copied ? (
+                  <CheckCircle2 className="h-5 w-5" />
+                ) : (
+                  <Zap className="h-5 w-5 fill-current animate-pulse" />
+                )}
                 {copied ? "COPIED TO CLIPBOARD" : "ACTIVATE TRACKING"}
               </Button>
             </div>

@@ -12,10 +12,12 @@ import {
   Monitor,
   Tablet,
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  Loader2 // Loader add kiya hai API sync ke liye
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { acceleratorService } from "@/services/accelerator" // Service import ki gayi hai
 
 export function BioLinkAccelerator() {
   const [links, setLinks] = useState([
@@ -25,6 +27,7 @@ export function BioLinkAccelerator() {
   
   // Device View State
   const [view, setView] = useState<"mobile" | "tablet" | "desktop">("mobile")
+  const [isDeploying, setIsDeploying] = useState(false) // API call tracking
 
   const addLink = () => {
     const newId = Math.random().toString(36).substr(2, 9)
@@ -37,6 +40,39 @@ export function BioLinkAccelerator() {
       setLinks(links.filter(l => l.id !== id))
     }
   }
+
+  // --- API INTEGRATION ---
+  const handleDeploy = async () => {
+    setIsDeploying(true);
+    const slug = "bio_" + Math.random().toString(36).substr(2, 6); // Unique handle generate kiya
+
+    try {
+      await acceleratorService.save({
+        name: "Bio-Link Hub",
+        type: "BIO_LINK",
+        slug: slug,
+        config: { 
+          links,
+          brandHandle: "@yourbrand" 
+        }
+      });
+
+      const publicUrl = `${window.location.origin}/go/${slug}`;
+      toast.success("Bio-Link Hub Deployed Successfully!");
+      
+      // Clipboard mein copy kar lo taaki user share kar sake
+      navigator.clipboard.writeText(publicUrl);
+      toast.info("Link copied to clipboard");
+      
+      // Naye tab mein open bhi kar dete hain view ke liye
+      window.open(publicUrl, "_blank");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to sync with Laps Cloud");
+    } finally {
+      setIsDeploying(false);
+    }
+  };
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 p-6">
@@ -105,7 +141,12 @@ export function BioLinkAccelerator() {
                 >
                   <Plus className="h-4 w-4" /> Add Link
                 </Button>
-                <Button className="flex-1 h-12 rounded-2xl bg-primary font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20">
+                <Button 
+                  onClick={handleDeploy}
+                  disabled={isDeploying}
+                  className="flex-1 h-12 rounded-2xl bg-primary font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
+                >
+                  {isDeploying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Deploy Hub
                 </Button>
               </div>
